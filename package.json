@@ -7,6 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
     "clean": "gts clean",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "compile": "tsc",
     "server": "DEBUG=limb:*,socket.io:* nodemon --exec ts-node-transpile-only server.ts",
     "fix": "gts fix",
@@ -19,12 +22,15 @@
   "dependencies": {
     "@jokester/ts-commonutil": "^0.4.2",
     "debug": "^4.3.4",
-    "socket.io": "^4.7.4"
+    "preact": "^10.19.3",
+    "socket.io-client": "^4.7.4"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.7.0",
     "@types/debug": "^4.1.12",
     "@types/node": "^18",
     "gts": "^5.2.0",
+    "socket.io": "^4.7.4",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",

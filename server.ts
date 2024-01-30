@@ -1,4 +1,5 @@
 import * as http from 'node:http';
+// eslint-disable-next-line node/no-unpublished-import
 import * as sio from 'socket.io';
 import debug from 'debug';
 import * as ee from 'node:events';
@@ -15,11 +16,29 @@ function initServer(): http.Server {
   const httpServer = http.createServer();
 
   const sioServer = new sio.Server(httpServer, {
-    path: '/signaling',
+    cleanupEmptyChildNamespaces: true,
+    cors: {
+      origin(origin, callback) {
+        // TODO ['http://localhost:3001', 'https://limb.jokester.io']
+        callback(null, origin);
+      },
+    },
     serveClient: false,
   });
 
-  sioServer.on('connection', socket => {});
+  sioServer.on('connection', socket => {
+    logger('connection', socket.id);
+    socket.on('disconnect', reason => {
+      logger('disconnect', socket.id, reason);
+    });
+    socket.on('error', error => {
+      logger('error', socket.id, error);
+    });
+    socket.on('message', (message: any) => {
+      logger('message', socket.id, message);
+      socket.send(message);
+    });
+  });
 
   return httpServer;
 }
