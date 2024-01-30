@@ -1,7 +1,7 @@
 import * as http from 'node:http';
 import * as sio from 'socket.io';
 import debug from 'debug';
-import * as ee from 'node:events';
+import type {ClientCommandBase, ClientCommands} from './src/conn';
 
 const logger = debug('limb:server');
 
@@ -18,15 +18,27 @@ function initServer(): http.Server {
     cleanupEmptyChildNamespaces: true,
     cors: {
       origin(origin, callback) {
-        // TODO ['http://localhost:3001', 'https://limb.jokester.io']
+        // TODO impl CORS whitelist
+        // e.g. ['http://localhost:3001', 'https://limb.jokester.io']
         callback(null, origin);
       },
     },
     serveClient: false,
   });
 
+  // events that interact with server, and do not need to be broadcasted
+  const serverOnlySocketEvent: ReadonlySet<string> = new Set([
+    'disconnecting',
+    'disconnect',
+    'error',
+    'subscribe',
+  ]);
+
   sioServer.on('connection', socket => {
     logger('connection', socket.id);
+    socket.on('disconnecting', reason => {
+      logger('disconnect', socket.id, reason);
+    });
     socket.on('disconnect', reason => {
       logger('disconnect', socket.id, reason);
     });
@@ -36,6 +48,17 @@ function initServer(): http.Server {
     socket.on('message', (message: any) => {
       logger('message', socket.id, message);
       socket.send(message);
+    });
+    socket.on('subscribe', (msg: ClientCommands['subscribe']) => {
+      socket.join(`room:${msg.topicId}`);
+    });
+
+    socket.onAny((event, message: ClientCommandBase) => {
+      if (serverOnlySocketEvent.has(event)) {
+        return;
+      }
+      logger('topic event', event);
+      socket.broadcast.in(`room:${message.topicId}`).emit(event, message);
     });
   });
 

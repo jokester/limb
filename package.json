@@ -11,7 +11,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "compile": "tsc",
-    "server": "DEBUG=limb:*,socket.io:* nodemon --exec ts-node-transpile-only server.ts",
+    "server": "DEBUG=limb:*,-socket.io:* nodemon --ignore src/ --exec ts-node-transpile-only server.ts",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",

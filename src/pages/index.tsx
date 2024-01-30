@@ -11,8 +11,8 @@ export function IndexPage(props: {path?: string}) {
   if (uuid) {
     return (
       <div>
-        start new connection:
-        <a href={`/conn/${uuid}`}>{uuid}</a>
+        join random topic:
+        <a href={`/topics/${uuid}`}>{uuid}</a>
       </div>
     );
   }
