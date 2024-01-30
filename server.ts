@@ -1,5 +1,4 @@
 import * as http from 'node:http';
-// eslint-disable-next-line node/no-unpublished-import
 import * as sio from 'socket.io';
 import debug from 'debug';
 import * as ee from 'node:events';
