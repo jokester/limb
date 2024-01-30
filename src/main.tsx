@@ -4,7 +4,7 @@ import './index.css';
 import debug from 'debug';
 import {NotFoundPage} from './pages/404';
 import {IndexPage} from './pages';
-import {ConnPage} from './pages/conn/:id';
+import {ConnPage} from './pages/conn/:uuid';
 
 const logger = debug('app:main');
 
@@ -12,7 +12,7 @@ function RootRouter() {
   return (
     <Router>
       <IndexPage path="/" />
-      <ConnPage path="/conn/:id" />
+      <ConnPage path="/conn/:uuid" />
       <NotFoundPage default />
     </Router>
   );
