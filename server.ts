@@ -11,10 +11,21 @@ function waitSignal(name: string): Promise<string> {
   });
 }
 
-function initServer(): http.Server {
+interface ServerGroup {
+  http: http.Server;
+  io: sio.Server;
+}
+
+function initServer(): ServerGroup {
   const httpServer = http.createServer();
 
-  const sioServer = new sio.Server(httpServer, {
+  httpServer.on('request', (req, res) => {
+    logger('request', req.url);
+    res.statusCode = 404;
+    res.end('not found');
+  });
+
+  const ioServer = new sio.Server(httpServer, {
     cleanupEmptyChildNamespaces: true,
     cors: {
       origin(origin, callback) {
@@ -34,10 +45,10 @@ function initServer(): http.Server {
     'subscribe',
   ]);
 
-  sioServer.on('connection', socket => {
+  ioServer.on('connection', socket => {
     logger('connection', socket.id);
     socket.on('disconnecting', reason => {
-      logger('disconnect', socket.id, reason);
+      logger('disconnecting', socket.id, reason);
     });
     socket.on('disconnect', reason => {
       logger('disconnect', socket.id, reason);
@@ -45,11 +56,8 @@ function initServer(): http.Server {
     socket.on('error', error => {
       logger('error', socket.id, error);
     });
-    socket.on('message', (message: any) => {
-      logger('message', socket.id, message);
-      socket.send(message);
-    });
     socket.on('subscribe', (msg: ClientCommands['subscribe']) => {
+      logger('subscribe', socket.id, msg.clientId, msg.topicId);
       socket.join(`room:${msg.topicId}`);
     });
 
@@ -62,24 +70,25 @@ function initServer(): http.Server {
     });
   });
 
-  return httpServer;
+  return {http: httpServer, io: ioServer};
 }
 
-function waitServerEnd(server: http.Server): Promise<void> {
+function waitServerEnd(serverGroup: ServerGroup): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    server.close(error => {
+    serverGroup.http.close(error => {
       if (error) {
         reject(error);
       } else {
         resolve();
       }
     });
+    serverGroup.io.close();
   });
 }
 
 if (require.main === module) {
   const server = initServer();
-  server.listen(3000);
+  server.http.listen(3000);
   console.info('server listening on 3000');
 
   Promise.race([waitSignal('SIGTERM'), waitSignal('SIGINT')]).then(
