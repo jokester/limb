@@ -21,7 +21,7 @@ export interface ClientCommandBase {
 export function startConn<Commands extends Record<string, unknown>>(
   ownId: string,
   callbacks: SocketCallbacks,
-  url = 'localhost:3000'
+  url = 'https://limb.jokester.io/'
 ): {
   send<T extends keyof Commands>(command: T, data: Commands[T]): void;
   close(): void;

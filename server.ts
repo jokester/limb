@@ -26,7 +26,6 @@ function initServer(): ServerGroup {
   });
 
   const ioServer = new sio.Server(httpServer, {
-    cleanupEmptyChildNamespaces: true,
     cors: {
       origin(origin, callback) {
         // TODO impl CORS whitelist
