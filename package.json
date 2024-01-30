@@ -16,8 +16,9 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
+    "@types/node": "20.8.2",
     "gts": "^5.2.0",
     "typescript": "^5.3.3",
-    "@types/node": "20.8.2"
+    "vite": "^5.0.12"
   }
 }
