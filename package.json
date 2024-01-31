@@ -21,8 +21,8 @@
   "license": "BSD",
   "dependencies": {
     "@jokester/ts-commonutil": "^0.4.2",
-    "@types/uuid": "^9.0.8",
     "debug": "^4.3.4",
+    "http-server": "^14.1.1",
     "preact": "^10.19.3",
     "preact-router": "^4.1.2",
     "socket.io-client": "^4.7.4",
@@ -32,6 +32,8 @@
     "@blueprintjs/core": "^5.8.2",
     "@preact/preset-vite": "^2.7.0",
     "@types/debug": "^4.1.12",
+    "@types/http-server": "^0.12.4",
+    "@types/uuid": "^9.0.8",
     "@types/node": "^18",
     "autoprefixer": "^10.4.17",
     "gts": "^5.2.0",
