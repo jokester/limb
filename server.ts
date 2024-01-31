@@ -28,6 +28,7 @@ function initServer(): ServerGroup {
     logger('request', req.url);
     serveHandler(req, res, {
       public: distDir,
+      rewrites: [{source: '/topics/*', destination: '/index.html'}],
       cleanUrls: true,
       directoryListing: false,
       trailingSlash: false,
