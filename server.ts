@@ -2,9 +2,10 @@ import http from 'node:http';
 import sio from 'socket.io';
 import path from 'node:path';
 import debug from 'debug';
-import type {ClientCommandBase, ClientCommands} from './src/conn';
 
 import serveHandler from 'serve-handler';
+import {onV2Connection} from './src/namespaces/v2/server';
+import {onV1Connection} from './src/namespaces/v1/server';
 
 const logger = debug('limb:server');
 
@@ -33,52 +34,26 @@ function initServer(): ServerGroup {
       directoryListing: false,
       trailingSlash: false,
       etag: true,
+    }).catch(e => {
+      console.error('serveHandler: error handling request', e);
     });
   });
 
   const ioServer = new sio.Server(httpServer, {
     cors: {
       origin(origin, callback) {
-        // TODO impl CORS whitelist
-        // e.g. ['http://localhost:3001', 'https://limb.jokester.io']
+        // allow all cors call
         callback(null, origin);
       },
     },
     serveClient: false,
   });
 
-  // events that interact with server, and do not need to be broadcasted
-  const serverOnlySocketEvent: ReadonlySet<string> = new Set([
-    'disconnecting',
-    'disconnect',
-    'error',
-    'subscribe',
-  ]);
+  const v1 = ioServer.of('/v1');
+  v1.on('connection', socket => onV1Connection(v1, socket));
 
-  ioServer.on('connection', socket => {
-    logger('connection', socket.id);
-    socket.on('disconnecting', reason => {
-      logger('disconnecting', socket.id, reason);
-    });
-    socket.on('disconnect', reason => {
-      logger('disconnect', socket.id, reason);
-    });
-    socket.on('error', error => {
-      logger('error', socket.id, error);
-    });
-    socket.on('subscribe', (msg: ClientCommands['subscribe']) => {
-      logger('subscribe', socket.id, msg.clientId, msg.topicId);
-      socket.join(`room:${msg.topicId}`);
-    });
-
-    socket.onAny((event, message: ClientCommandBase) => {
-      if (serverOnlySocketEvent.has(event)) {
-        return;
-      }
-      logger('topic event', event);
-      socket.broadcast.in(`room:${message.topicId}`).emit(event, message);
-    });
-  });
+  const v2 = ioServer.of('/v2');
+  v2.on('connection', socket => onV2Connection(v2, socket));
 
   return {http: httpServer, io: ioServer};
 }

@@ -4,7 +4,8 @@ import './index.css';
 import debug from 'debug';
 import {NotFoundPage} from './pages/404';
 import {IndexPage} from './pages';
-import {TopicPage} from './pages/topics/:uuid';
+import {V1RoomPage} from './pages/v1/:topicId';
+import {V2RoomPage} from './pages/v2/:roomId';
 
 const logger = debug('app:main');
 
@@ -12,7 +13,8 @@ function RootRouter() {
   return (
     <Router>
       <IndexPage path="/" />
-      <TopicPage path="/topics/:uuid" />
+      <V1RoomPage path="/v1/:topicId" />
+      <V2RoomPage path="/v2/:roomId" />
       <NotFoundPage default />
     </Router>
   );

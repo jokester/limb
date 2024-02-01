@@ -1,32 +1,32 @@
-import {io, Socket} from 'socket.io-client';
+import {io} from 'socket.io-client';
 
 import debug from 'debug';
 
-const log = debug('app:conn');
+export type * from './types';
+
+const log = debug('limbo:client:v1');
 
 interface SocketCallbacks {
   [event: string]: (data: any) => void;
 }
 
-export interface ClientCommands extends Record<string, ClientCommandBase> {
-  subscribe: ClientCommandBase & {topicId: string};
-  ping: ClientCommandBase & {timestamp: string};
-}
+const isLocalOrigin =
+  typeof location === 'object' &&
+  ['localhost', '127.0.0.1'].includes(location.hostname);
 
-export interface ClientCommandBase {
-  clientId: string;
-  topicId: string;
-}
+const defaultOrigin = isLocalOrigin
+  ? 'http://127.0.0.1:3000'
+  : 'https://limb.jokester.io';
 
-export function startConn<Commands extends Record<string, unknown>>(
+export function connectV1<Commands extends Record<string, unknown>>(
   ownId: string,
   callbacks: SocketCallbacks,
-  url = 'https://limb.jokester.io/'
+  serverOrigin = defaultOrigin
 ): {
   send<T extends keyof Commands>(command: T, data: Commands[T]): void;
   close(): void;
 } {
-  const socket = io(url);
+  const socket = io(serverOrigin + '/v1');
   socket.on('connect', () => {
     log('connected', ownId);
   });
