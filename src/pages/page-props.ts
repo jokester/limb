@@ -1,4 +1,4 @@
-export interface PageProps<M extends Record<string, string>> {
+export interface PageProps<M extends Record<string, string> = {}> {
   // e.g. /conn/:id
   path: string;
 

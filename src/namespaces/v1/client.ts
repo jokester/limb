@@ -2,7 +2,9 @@ import {io} from 'socket.io-client';
 
 import debug from 'debug';
 
-const log = debug('app:conn');
+export type * from './types';
+
+const log = debug('limbo:client:v1');
 
 interface SocketCallbacks {
   [event: string]: (data: any) => void;
@@ -10,20 +12,21 @@ interface SocketCallbacks {
 
 const isLocalOrigin =
   typeof location === 'object' &&
-  ['localhost', '127.0.0.1'].includes(location.host);
+  ['localhost', '127.0.0.1'].includes(location.hostname);
 
-const origin = isLocalOrigin ? 'http://127.1:3000' : 'https://limb.jokester.io';
+const defaultOrigin = isLocalOrigin
+  ? 'http://127.0.0.1:3000'
+  : 'https://limb.jokester.io';
 
-export function startConn<Commands extends Record<string, unknown>>(
+export function connectV1<Commands extends Record<string, unknown>>(
   ownId: string,
   callbacks: SocketCallbacks,
-  namespace: '/v1' | '/v2',
-  serverOrigin = origin
+  serverOrigin = defaultOrigin
 ): {
   send<T extends keyof Commands>(command: T, data: Commands[T]): void;
   close(): void;
 } {
-  const socket = io(serverOrigin + namespace);
+  const socket = io(serverOrigin + '/v1');
   socket.on('connect', () => {
     log('connected', ownId);
   });

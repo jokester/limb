@@ -3,7 +3,7 @@ import type sio from 'socket.io';
 
 import {ClientCommandBase, ClientCommands} from './types';
 
-const logger = debug('limb:server:socket');
+const logger = debug('limb:server:v2');
 
 // events should not be broadcasted
 // i.e. a socket won't receive them from peer sockets
