@@ -1,3 +1,3 @@
-import { PropsWithChildren } from "react";
+import {PropsWithChildren} from 'react';
 
-export function TouchPanel(props: )
+export function TouchPanel(props: PropsWithChildren<{}>) {}
