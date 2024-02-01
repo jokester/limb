@@ -1,4 +1,4 @@
-import {io, Socket} from 'socket.io-client';
+import {io} from 'socket.io-client';
 
 import debug from 'debug';
 
@@ -8,25 +8,22 @@ interface SocketCallbacks {
   [event: string]: (data: any) => void;
 }
 
-export interface ClientCommands extends Record<string, ClientCommandBase> {
-  subscribe: ClientCommandBase & {topicId: string};
-  ping: ClientCommandBase & {timestamp: string};
-}
+const isLocalOrigin =
+  typeof location === 'object' &&
+  ['localhost', '127.0.0.1'].includes(location.host);
 
-export interface ClientCommandBase {
-  clientId: string;
-  topicId: string;
-}
+const origin = isLocalOrigin ? 'http://127.1:3000' : 'https://limb.jokester.io';
 
 export function startConn<Commands extends Record<string, unknown>>(
   ownId: string,
   callbacks: SocketCallbacks,
-  url = 'https://limb.jokester.io/'
+  namespace: '/v1' | '/v2',
+  serverOrigin = origin
 ): {
   send<T extends keyof Commands>(command: T, data: Commands[T]): void;
   close(): void;
 } {
-  const socket = io(url);
+  const socket = io(serverOrigin + namespace);
   socket.on('connect', () => {
     log('connected', ownId);
   });
