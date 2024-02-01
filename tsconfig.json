@@ -2,6 +2,11 @@
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
     "noEmit": true,
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "importHelpers": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "outDir": "build"

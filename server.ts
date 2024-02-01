@@ -1,7 +1,10 @@
-import * as http from 'node:http';
-import * as sio from 'socket.io';
+import http from 'node:http';
+import sio from 'socket.io';
+import path from 'node:path';
 import debug from 'debug';
 import type {ClientCommandBase, ClientCommands} from './src/conn';
+
+import serveHandler from 'serve-handler';
 
 const logger = debug('limb:server');
 
@@ -10,6 +13,8 @@ function waitSignal(name: string): Promise<string> {
     process.on(name, () => resolve(name));
   });
 }
+
+const distDir = path.join(__dirname, 'dist');
 
 interface ServerGroup {
   http: http.Server;
@@ -21,8 +26,14 @@ function initServer(): ServerGroup {
 
   httpServer.on('request', (req, res) => {
     logger('request', req.url);
-    res.statusCode = 404;
-    res.end('not found');
+    serveHandler(req, res, {
+      public: distDir,
+      rewrites: [{source: '/topics/*', destination: '/index.html'}],
+      cleanUrls: true,
+      directoryListing: false,
+      trailingSlash: false,
+      etag: true,
+    });
   });
 
   const ioServer = new sio.Server(httpServer, {
