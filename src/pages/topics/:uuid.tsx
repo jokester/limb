@@ -19,10 +19,9 @@ export function TopicPage(props: PageProps<{uuid: string}>) {
         ping(msg: ClientCommands['ping']) {
           logger('got msg', msg);
           setLines(prev => {
-            return [
-              ...prev,
-              `${msg.clientId}: ping at ${msg.timestamp}}`,
-            ].slice(-10);
+            return [...prev, `${msg.clientId}: ping at ${msg.timestamp}`].slice(
+              -20
+            );
           });
         },
         connect() {
@@ -51,9 +50,11 @@ export function TopicPage(props: PageProps<{uuid: string}>) {
       <div>topic id: {props.matches!.uuid}</div>
       <div>client id: {clientId}</div>
       <hr />
-      {lines.map(l => (
-        <p key={l}>{l}</p>
-      ))}
+      <div className="h-64 overflow-y">
+        {lines.map(l => (
+          <p key={l}>{l}</p>
+        ))}
+      </div>
     </div>
   );
 }
