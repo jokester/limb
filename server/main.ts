@@ -11,9 +11,6 @@ import {closeSioSockets, prepareTcpConnect, waitSignal} from './utils';
 
 const logger = debug('limb:server');
 
-const distDir = path.join(__dirname, 'dist');
-const distFound = fs.existsSync(distDir);
-
 interface ServerGroup {
   http: http.Server;
   io: sio.Server;
@@ -26,11 +23,13 @@ function initServer(): ServerGroup {
   httpServer.on('request', (req, res) => {
     logger('request', req.url);
 
-    if (distFound) {
+    const distDir = path.join(__dirname, 'dist');
+    if (fs.existsSync(distDir)) {
       serveHandler(req, res, {
         public: distDir,
-        // FIXME
-        rewrites: [{source: '/topics/*', destination: '/index.html'}],
+        // route for SPA
+        // NOTE static files take precedence over this
+        rewrites: [{source: '/*', destination: '/index.html'}],
         cleanUrls: true,
         directoryListing: false,
         trailingSlash: false,
