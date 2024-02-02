@@ -82,42 +82,54 @@ function waitServerEnd(serverLike: http.Server | sio.Server): Promise<void> {
   });
 }
 
-if (require.main === module) {
+async function main(): Promise<0 | 1> {
   const server = initServer();
   server.http.listen(3000);
   console.info('server listening on 3000');
 
-  Promise.race([waitSignal('SIGTERM'), waitSignal('SIGINT')]).then(
-    async cause => {
-      console.info('server shutting down', cause);
+  {
+    const shutdownCause = await Promise.race([
+      waitSignal('SIGTERM'),
+      waitSignal('SIGINT'),
+    ]);
+    console.info('server shutting down', shutdownCause);
+  }
 
-      try {
-        // a workaround to disconnect & close, not proven to work yet
-        server.io.disconnectSockets(true);
+  try {
+    // a workaround to disconnect & close, not proven to work yet
+    server.io.disconnectSockets(true);
 
-        setTimeout(() => {
-          logger('force closing socket.io sockets');
-          closeSioSockets(server.io);
-        }, 5e3);
-        setTimeout(() => {
-          logger('force closing TCP sockets');
-          server.closeTcpSockets();
-        }, 8e3);
-        await waitServerEnd(server.io); // this shutdowns http server too
-        logger('socket.io closed');
-        await waitServerEnd(server.http).catch(e => {
-          if (e?.code !== 'ERR_SERVER_NOT_RUNNING') {
-            throw e;
-          }
-        });
-        logger('http closed');
-        console.info('server shutdown');
-        process.exit(0);
-      } catch (e) {
-        logger('server shutdown with error', e);
-        console.error('server end with error', e);
-        process.exit(1);
+    setTimeout(() => {
+      logger('force closing socket.io sockets');
+      closeSioSockets(server.io);
+    }, 5e3);
+    setTimeout(() => {
+      logger('force closing TCP sockets');
+      server.closeTcpSockets();
+    }, 8e3);
+    await waitServerEnd(server.io); // this shutdowns http server too
+    logger('socket.io closed');
+    await waitServerEnd(server.http).catch(e => {
+      if (e?.code !== 'ERR_SERVER_NOT_RUNNING') {
+        throw e;
       }
+    });
+    logger('http closed');
+    console.info('server shutdown');
+    return 0;
+  } catch (e) {
+    logger('server shutdown with error', e);
+    console.error('server end with error', e);
+    return 1;
+  }
+}
+
+if (require.main === module) {
+  main().then(
+    exitCode => process.exit(exitCode),
+    e => {
+      console.error('unexpected error', e);
+      process.exit(2);
     }
   );
 }
