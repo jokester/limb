@@ -1,5 +1,5 @@
 import type net from 'node:net';
-import http from 'node:http';
+import type http from 'node:http';
 import debug from 'debug';
 import sio from 'socket.io';
 
@@ -11,10 +11,12 @@ export function waitSignal(name: string): Promise<string> {
   });
 }
 
-// socket.io does not provide a way to close all sockets
-// so we need to record and close underlying TCP sockets
-// learned this way from
-export function prepareSocket(server: http.Server): () => number {
+/**
+ * record alive TCP connections, to force disconnect them during shutdown
+ * (socket.io may have problem close all connections.)
+ * @return a function to close all TCP sockets
+ */
+export function prepareTcpConnect(server: http.Server): () => void {
   const sockets = new Set<net.Socket>();
   server.on('connection', conn => {
     sockets.add(conn);
@@ -23,14 +25,7 @@ export function prepareSocket(server: http.Server): () => number {
     });
   });
 
-  return () => {
-    let i = 0;
-    for (const socket of sockets) {
-      logger('force closing TCP socket', ++i);
-      socket.destroy();
-    }
-    return i;
-  };
+  return () => sockets.forEach(s => s.destroy());
 }
 
 export function closeSioSockets(server: sio.Server) {

@@ -7,7 +7,7 @@ import serveHandler from 'serve-handler';
 import {onV2Connection} from './namespace-v2';
 import {onV1Connection} from './namespace-v1';
 import * as fs from 'fs';
-import {closeSioSockets, prepareSocket, waitSignal} from './utils';
+import {closeSioSockets, prepareTcpConnect, waitSignal} from './utils';
 
 const logger = debug('limb:server');
 
@@ -66,7 +66,7 @@ function initServer(): ServerGroup {
   return {
     http: httpServer,
     io: ioServer,
-    closeTcpSockets: prepareSocket(httpServer),
+    closeTcpSockets: prepareTcpConnect(httpServer),
   };
 }
 
@@ -95,8 +95,14 @@ if (require.main === module) {
         // a workaround to disconnect & close, not proven to work yet
         server.io.disconnectSockets(true);
 
-        setTimeout(() => closeSioSockets(server.io), 5e3);
-        setTimeout(() => server.closeTcpSockets(), 8e3);
+        setTimeout(() => {
+          logger('force closing socket.io sockets');
+          closeSioSockets(server.io);
+        }, 5e3);
+        setTimeout(() => {
+          logger('force closing TCP sockets');
+          server.closeTcpSockets();
+        }, 8e3);
         await waitServerEnd(server.io); // this shutdowns http server too
         logger('socket.io closed');
         await waitServerEnd(server.http).catch(e => {
