@@ -5,35 +5,11 @@ import {ClientCommandBase, ClientCommands} from '../types/namespace-v2';
 
 const logger = debug('limb:server:v2');
 
-// events should not be broadcasted
-// i.e. a socket won't receive them from peer sockets
-const csInteractionEvents: ReadonlySet<string> = new Set([
-  // client internal
-  'connect_error',
-  'connect',
-  // server internal
-  'disconnecting',
-  'disconnect',
-  'error',
-  // client-server interactions
-  'join',
-  'leave',
-  'welcome',
-  'pong',
-]);
-
 export function onV2Connection(
   namespace: sio.Namespace,
   socket: sio.Socket
 ): void {
   logger('connection', socket.id);
-
-  function onInternalError(error: unknown): void {
-    logger('error handling ', socket.id, error);
-    socket.disconnect(true);
-  }
-
-  socket.send('welcome', {socketId: socket.id});
 
   socket.on('disconnecting', (reason: unknown) => {
     logger('disconnecting', socket.id, reason);
@@ -45,43 +21,47 @@ export function onV2Connection(
 
   socket.on('error', (error: unknown) => {
     logger('error', socket.id, error);
+    onInternalError(socket, error);
   });
 
-  socket.on('join', (msg: ClientCommands['join']) => {
-    logger('join', socket.id, msg.room);
+  socket.on('message', (event, payload) => {
     try {
-      socket.join(`room:${msg.room}`);
+      handleUserMessage(namespace, socket, event, payload);
     } catch (e) {
-      onInternalError(e);
+      onInternalError(socket, e);
     }
   });
 
-  socket.on('leave', (msg: ClientCommands['join']) => {
-    logger('join', socket.id, msg.room);
-    try {
-      socket.leave(`room:${msg.room}`);
-    } catch (e) {
-      onInternalError(e);
-    }
-  });
+  socket.send('sys:welcome', {socketId: socket.id});
+}
 
-  socket.onAny((event: string, clientMessage: ClientCommandBase) => {
-    try {
-      if (csInteractionEvents.has(event)) {
-        return;
-      } else if (event === 'ping') {
-        socket.send('pong', {
-          from: clientMessage.from,
-        });
-        forwardMessage(namespace, socket, event, clientMessage);
-      } else {
-        forwardMessage(namespace, socket, event, clientMessage);
-      }
-      logger('topic event', event);
-    } catch (e) {
-      onInternalError(e);
+function handleUserMessage(
+  namespace: sio.Namespace,
+  socket: sio.Socket,
+  event: string,
+  _payload: ClientCommandBase
+) {
+  logger('user message', socket.id, event, _payload.nonce);
+
+  switch (event) {
+    case 'sys:ping': {
+      const now = new Date().toISOString();
+      socket.send('sys:pong', {timestamp: now});
+      break;
     }
-  });
+    case 'room:join': {
+      const payload = _payload as ClientCommands[typeof event];
+      socket.join(`room:${payload.room}`);
+      break;
+    }
+    case 'room:leave': {
+      const payload = _payload as ClientCommands[typeof event];
+      socket.leave(`room:${payload.room}`);
+      break;
+    }
+    default:
+      forwardMessage(namespace, socket, event, _payload);
+  }
 }
 
 function forwardMessage(
@@ -105,4 +85,9 @@ function forwardMessage(
       logger('unexpected to', socket.id, to);
     }
   });
+}
+
+function onInternalError(socket: sio.Socket, error: unknown): void {
+  logger('error handling ', socket.id, error);
+  socket.disconnect(true);
 }

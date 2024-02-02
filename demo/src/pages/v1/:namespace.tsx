@@ -40,16 +40,23 @@ function usePageState(namespace: string): PageState {
     const defaultOrigin = getDefaultOrigin();
     const socket = io(`${defaultOrigin}/v1/${namespace}`);
 
-    socket.onAny((event, clientEvent, payload) => {
-      const now = new Date().toISOString();
-      if (['connect', 'disconnect', 'connect_error'].includes(event)) {
+    for (const event of ['connect', 'disconnect', 'connect_error']) {
+      socket.on(event, (...rest: unknown[]) => {
+        logger('socket event', event, rest);
+        const now = new Date().toISOString();
+
         setState(prev => ({
           ...prev,
           state: event,
           logLines: [`${now}: ${event}`, ...prev.logLines].slice(0, 100),
         }));
-      } else if (clientEvent === 'ping') {
-        const now = new Date().toISOString();
+      });
+    }
+
+    socket.onAny((event, clientEvent, payload) => {
+      logger('wildcard event', event, clientEvent, payload);
+      const now = new Date().toISOString();
+      if (clientEvent === 'ping') {
         const ping = payload as PingMessage;
         const delay = (Date.now() - Date.parse(ping.timestamp)).toFixed(2);
 
