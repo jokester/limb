@@ -6,12 +6,12 @@ export interface ClientCommandBase {
 }
 
 export interface ClientCommands extends Record<string, ClientCommandBase> {
-  '_room:join': ClientCommandBase & {room: string};
-  '_room:leave': ClientCommandBase & {room: string};
-  '_sys:ping': ClientCommandBase & {timestamp: string};
+  'room:join': ClientCommandBase & {room: string};
+  'room:leave': ClientCommandBase & {room: string};
+  'sys:ping': ClientCommandBase;
 }
 
 export interface ServerCommands {
-  '_sys:welcome': {socketId: string};
-  '_sys:pong': ClientCommandBase;
+  'sys:welcome': {socketId: string};
+  'sys:pong': ClientCommandBase;
 }

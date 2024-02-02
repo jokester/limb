@@ -60,8 +60,9 @@ function initServer(): ServerGroup {
     .of(/^\/v1\/[-\w:]+$/)
     .on('connection', socket => onV1Connection(socket.nsp, socket));
 
-  const v2 = ioServer.of('/v2');
-  v2.on('connection', socket => onV2Connection(v2, socket));
+  ioServer
+    .of(/^\/v2\/[-\w:]+$/)
+    .on('connection', socket => onV2Connection(socket.nsp, socket));
 
   return {
     http: httpServer,
