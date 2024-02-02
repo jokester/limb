@@ -29,6 +29,7 @@ function initServer(): ServerGroup {
     logger('request', req.url);
     serveHandler(req, res, {
       public: distDir,
+      // FIXME
       rewrites: [{source: '/topics/*', destination: '/index.html'}],
       cleanUrls: true,
       directoryListing: false,
@@ -40,6 +41,7 @@ function initServer(): ServerGroup {
   });
 
   const ioServer = new sio.Server(httpServer, {
+    cleanupEmptyChildNamespaces: true,
     cors: {
       origin(origin, callback) {
         // allow all cors call
@@ -49,8 +51,13 @@ function initServer(): ServerGroup {
     serveClient: false,
   });
 
-  const v1 = ioServer.of('/v1');
-  v1.on('connection', socket => onV1Connection(v1, socket));
+  ioServer.on('new_namespace', namespace => {
+    logger('new namespace created', namespace.name, ioServer._nsps.size)
+  });
+
+  ioServer
+    .of(/^\/v1\/[-\w:]*$/)
+    .on('connection', socket => onV1Connection(socket.nsp, socket));
 
   const v2 = ioServer.of('/v2');
   v2.on('connection', socket => onV2Connection(v2, socket));

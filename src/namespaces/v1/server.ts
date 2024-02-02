@@ -1,43 +1,42 @@
 import debug from 'debug';
 import type sio from 'socket.io';
 
-import {ClientCommandBase, ClientCommands} from './types';
+// events that don't get forwarded to other Sockets
+const blacklistEvents: ReadonlySet<string> = new Set([
+  // client internal event
+  'connect',
+  'disconnect',
+  'connect_error',
 
-// events that interact with server, and do not need to be broadcasted
-const serverOnlySocketEvent: ReadonlySet<string> = new Set([
+  // server internal event?
   'disconnecting',
   'disconnect',
   'error',
-  'subscribe',
 ]);
 
 const logger = debug('limb:server:v1');
 
 export function onV1Connection(namespace: sio.Namespace, socket: sio.Socket) {
-  logger('connection', socket.id);
+  logger('connection', namespace.name, socket.id);
 
   socket.on('disconnecting', reason => {
-    logger('disconnecting', socket.id, reason);
+    logger('disconnecting', namespace.name, socket.id, reason);
   });
 
   socket.on('disconnect', reason => {
-    logger('disconnect', socket.id, reason);
+    logger('disconnect', namespace.name, socket.id, reason);
   });
 
   socket.on('error', error => {
-    logger('error', socket.id, error);
+    logger('error', namespace.name, socket.id, error);
   });
 
-  socket.on('subscribe', (msg: ClientCommands['subscribe']) => {
-    logger('subscribe', socket.id, msg.clientId, msg.topicId);
-    socket.join(`room:${msg.topicId}`);
-  });
-
-  socket.onAny((event, message: ClientCommandBase) => {
-    if (serverOnlySocketEvent.has(event)) {
+  socket.onAny((event, message) => {
+    if (blacklistEvents.has(event)) {
       return;
     }
-    logger('topic event', event);
-    socket.broadcast.in(`room:${message.topicId}`).emit(event, message);
+    logger('forwarding', namespace.name, socket.id, event);
+    // note this includes the sender
+    namespace.send(event, message);
   });
 }
