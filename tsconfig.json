@@ -5,9 +5,12 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "importHelpers": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "incremental": true,
+    "pretty": true,
+    "skipLibCheck": true,
     "jsxImportSource": "preact"
-  }
+  },
+  "include": ["demo/**/*.ts", "server/**/*.ts"]
 }

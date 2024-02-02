@@ -1,7 +1,7 @@
-import { PropsWithChildren, useRef } from "react";
+import {PropsWithChildren, useRef} from 'react';
 
-export function HammerTouchDemo(props: PropsWithChildren<{onEvent?: }>) {
-  const touchableRef = useRef<HTMLDivElement>(null)
+export function HammerTouchDemo(props: PropsWithChildren<{onEvent?: unknown}>) {
+  const touchableRef = useRef<HTMLDivElement>(null);
 
-  return <div className={''}></div>
+  return <div className={''}></div>;
 }

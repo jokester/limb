@@ -1,11 +1,12 @@
 import http from 'node:http';
-import sio from 'socket.io';
+import * as sio from 'socket.io';
 import path from 'node:path';
 import debug from 'debug';
 
 import serveHandler from 'serve-handler';
 import {onV2Connection} from './namespace-v2';
 import {onV1Connection} from './namespace-v1';
+import * as fs from 'fs';
 
 const logger = debug('limb:server');
 
@@ -16,6 +17,7 @@ function waitSignal(name: string): Promise<string> {
 }
 
 const distDir = path.join(__dirname, 'dist');
+const distFound = fs.existsSync(distDir);
 
 interface ServerGroup {
   http: http.Server;
@@ -27,17 +29,20 @@ function initServer(): ServerGroup {
 
   httpServer.on('request', (req, res) => {
     logger('request', req.url);
-    serveHandler(req, res, {
-      public: distDir,
-      // FIXME
-      rewrites: [{source: '/topics/*', destination: '/index.html'}],
-      cleanUrls: true,
-      directoryListing: false,
-      trailingSlash: false,
-      etag: true,
-    }).catch(e => {
-      console.error('serveHandler: error handling request', e);
-    });
+
+    if (distFound) {
+      serveHandler(req, res, {
+        public: distDir,
+        // FIXME
+        rewrites: [{source: '/topics/*', destination: '/index.html'}],
+        cleanUrls: true,
+        directoryListing: false,
+        trailingSlash: false,
+        etag: true,
+      }).catch(e => {
+        console.error('serveHandler: error handling request', e);
+      });
+    }
   });
 
   const ioServer = new sio.Server(httpServer, {
@@ -65,16 +70,17 @@ function initServer(): ServerGroup {
   return {http: httpServer, io: ioServer};
 }
 
-function waitServerEnd(serverGroup: ServerGroup): Promise<void> {
+function waitServerEnd(
+  serverLike: Pick<http.Server | sio.Server, 'close'>
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    serverGroup.http.close(error => {
+    serverLike.close(error => {
       if (error) {
         reject(error);
       } else {
         resolve();
       }
     });
-    serverGroup.io.close();
   });
 }
 
@@ -85,14 +91,17 @@ if (require.main === module) {
 
   Promise.race([waitSignal('SIGTERM'), waitSignal('SIGINT')]).then(
     async cause => {
-      console.info('closing server', cause);
-      const error = await waitServerEnd(server).catch(e => e);
-      if (error) {
-        console.error('error closing server', error);
-        process.exit(1);
-      } else {
-        console.info('server end');
+      console.info('server shutting down', cause);
+
+      try {
+        await waitServerEnd(server.io); // this shutdowns http server too
+        // await waitServerEnd(server.http);
+        console.info('server shutdown');
         process.exit(0);
+      } catch (e) {
+        logger('server shutdown with error', e);
+        console.error('server end with error', e);
+        process.exit(1);
       }
     }
   );
