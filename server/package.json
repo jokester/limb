@@ -9,7 +9,6 @@
     "clean": "gts clean",
     "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
     "build": "esbuild --platform=node main.ts --bundle --outfile=../build/server-main.js",
-    "preview": "vite preview",
     "compile": "tsc",
     "fix": "gts fix"
   },
