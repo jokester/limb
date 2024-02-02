@@ -1,58 +1,20 @@
 {
   "name": "@jokester/limb",
   "version": "0.0.1",
-  "description": "remote control from mobile browser",
-  "main": "index.js",
+  "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "gts lint",
-    "clean": "gts clean",
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "compile": "tsc",
-    "server": "DEBUG=limb:*,-socket.io:* nodemon --ignore src/ --exec ts-node-transpile-only server.ts",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "demo": "npm run --workspace=demo dev",
+    "server": "npm run --workspace=server dev"
   },
-  "author": "",
-  "license": "BSD",
-  "dependencies": {
-    "@jokester/ts-commonutil": "^0.4.2",
-    "@types/react": "^18.2.48",
-    "debug": "^4.3.4",
-    "hammerjs": "^2.0.8",
-    "rxjs": "^7.8.1",
-    "serve-handler": "^6.1.5",
-    "socket.io-client": "^4.7.4",
-    "tslib": "^2.6.2",
-    "uuid": "^9.0.1"
-  },
+  "workspaces": [
+    "./server",
+    "./demo"
+  ],
   "devDependencies": {
-    "@blueprintjs/core": "^5.8.2",
-    "@blueprintjs/icons": "^5.7.1",
-    "@preact/preset-vite": "^2.7.0",
-    "@types/debug": "^4.1.12",
-    "@types/hammerjs": "^2.0.45",
-    "@types/node": "^18",
-    "@types/serve-handler": "^6.1.4",
-    "@types/uuid": "^9.0.8",
-    "autoprefixer": "^10.4.17",
     "gts": "^5.2.0",
-    "nodemon": "^3.0.3",
-    "postcss": "^8.4.33",
-    "preact": "^10.19.3",
-    "preact-router": "^4.1.2",
-    "socket.io": "^4.7.4",
-    "tailwindcss": "^3.4.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.12"
   },
-  "overrides": {
-    "react": "npm:preact@^10.19.3",
-    "react-dom": "npm:preact@^10.19.3"
-  }
+  "author": "",
+  "license": "ISC"
 }

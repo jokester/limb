@@ -4,8 +4,8 @@ import path from 'node:path';
 import debug from 'debug';
 
 import serveHandler from 'serve-handler';
-import {onV2Connection} from './src/namespaces/v2/server';
-import {onV1Connection} from './src/namespaces/v1/server';
+import {onV2Connection} from './namespace-v2';
+import {onV1Connection} from './namespace-v1';
 
 const logger = debug('limb:server');
 
@@ -52,11 +52,11 @@ function initServer(): ServerGroup {
   });
 
   ioServer.on('new_namespace', namespace => {
-    logger('new namespace created', namespace.name, ioServer._nsps.size)
+    logger('new namespace created', namespace.name, ioServer._nsps.size);
   });
 
   ioServer
-    .of(/^\/v1\/[-\w:]*$/)
+    .of(/^\/v1\/[-\w:]+$/)
     .on('connection', socket => onV1Connection(socket.nsp, socket));
 
   const v2 = ioServer.of('/v2');

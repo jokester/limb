@@ -1,7 +1,7 @@
 import debug from 'debug';
 import type sio from 'socket.io';
 
-import {ClientCommandBase, ClientCommands} from './types';
+import {ClientCommandBase, ClientCommands} from '../types/namespace-v2';
 
 const logger = debug('limb:server:v2');
 
