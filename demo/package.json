@@ -17,7 +17,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@blueprintjs/core": "^5.8.2",
+    "@blueprintjs/core": "^5.9.1",
     "@blueprintjs/icons": "^5.7.1",
     "@jokester/ts-commonutil": "^0.4.2",
     "debug": "^4.3.4",
@@ -30,11 +30,11 @@
     "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.7.0",
+    "@preact/preset-vite": "^2.8.1",
     "@types/debug": "^4.1.12",
     "@types/hammerjs": "^2.0.45",
     "@types/node": "^18",
-    "@types/react": "^18.2.48",
+    "@types/react": "^18.2.51",
     "@types/serve-handler": "^6.1.4",
     "@types/uuid": "^9.0.8",
     "autoprefixer": "^10.4.17",
