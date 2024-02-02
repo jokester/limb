@@ -7,14 +7,9 @@ import serveHandler from 'serve-handler';
 import {onV2Connection} from './namespace-v2';
 import {onV1Connection} from './namespace-v1';
 import * as fs from 'fs';
+import {closeSioSockets, prepareSocket, waitSignal} from './utils';
 
 const logger = debug('limb:server');
-
-function waitSignal(name: string): Promise<string> {
-  return new Promise(resolve => {
-    process.on(name, () => resolve(name));
-  });
-}
 
 const distDir = path.join(__dirname, 'dist');
 const distFound = fs.existsSync(distDir);
@@ -22,6 +17,7 @@ const distFound = fs.existsSync(distDir);
 interface ServerGroup {
   http: http.Server;
   io: sio.Server;
+  closeTcpSockets(): void;
 }
 
 function initServer(): ServerGroup {
@@ -67,12 +63,14 @@ function initServer(): ServerGroup {
   const v2 = ioServer.of('/v2');
   v2.on('connection', socket => onV2Connection(v2, socket));
 
-  return {http: httpServer, io: ioServer};
+  return {
+    http: httpServer,
+    io: ioServer,
+    closeTcpSockets: prepareSocket(httpServer),
+  };
 }
 
-function waitServerEnd(
-  serverLike: Pick<http.Server | sio.Server, 'close'>
-): Promise<void> {
+function waitServerEnd(serverLike: http.Server | sio.Server): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     serverLike.close(error => {
       if (error) {
@@ -94,8 +92,19 @@ if (require.main === module) {
       console.info('server shutting down', cause);
 
       try {
+        // a workaround to disconnect & close, not proven to work yet
+        server.io.disconnectSockets(true);
+
+        setTimeout(() => closeSioSockets(server.io), 5e3);
+        setTimeout(() => server.closeTcpSockets(), 8e3);
         await waitServerEnd(server.io); // this shutdowns http server too
-        // await waitServerEnd(server.http);
+        logger('socket.io closed');
+        await waitServerEnd(server.http).catch(e => {
+          if (e?.code !== 'ERR_SERVER_NOT_RUNNING') {
+            throw e;
+          }
+        });
+        logger('http closed');
         console.info('server shutdown');
         process.exit(0);
       } catch (e) {
