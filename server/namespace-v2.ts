@@ -1,7 +1,7 @@
 import debug from 'debug';
 import type sio from 'socket.io';
 
-import {ClientCommandBase, ClientCommands} from './types';
+import {ClientCommandBase, ClientCommands} from '../types/namespace-v2';
 
 const logger = debug('limb:server:v2');
 
@@ -35,15 +35,15 @@ export function onV2Connection(
 
   socket.send('welcome', {socketId: socket.id});
 
-  socket.on('disconnecting', reason => {
+  socket.on('disconnecting', (reason: unknown) => {
     logger('disconnecting', socket.id, reason);
   });
 
-  socket.on('disconnect', reason => {
+  socket.on('disconnect', (reason: unknown) => {
     logger('disconnect', socket.id, reason);
   });
 
-  socket.on('error', error => {
+  socket.on('error', (error: unknown) => {
     logger('error', socket.id, error);
   });
 
@@ -65,7 +65,7 @@ export function onV2Connection(
     }
   });
 
-  socket.onAny((event, clientMessage: ClientCommandBase) => {
+  socket.onAny((event: string, clientMessage: ClientCommandBase) => {
     try {
       if (csInteractionEvents.has(event)) {
         return;

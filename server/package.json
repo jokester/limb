@@ -1,0 +1,35 @@
+{
+  "name": "@jokester/limb-server",
+  "version": "0.0.1",
+  "description": "a purpose-free signaling server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
+    "build": "esbuild --platform=node main.ts --bundle --outfile=../build/server-main.js",
+    "preview": "vite preview",
+    "compile": "tsc",
+    "fix": "gts fix"
+  },
+  "author": "",
+  "license": "BSD",
+  "dependencies": {
+    "@jokester/ts-commonutil": "^0.4.2",
+    "debug": "^4.3.4",
+    "serve-handler": "^6.1.5",
+    "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "@types/node": "^18",
+    "@types/serve-handler": "^6.1.4",
+    "@types/uuid": "^9.0.8",
+    "gts": "*",
+    "esbuild": "*",
+    "nodemon": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "*"
+  }
+}
