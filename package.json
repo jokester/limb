@@ -13,11 +13,15 @@
     "./demo"
   ],
   "devDependencies": {
+    "esbuild": "^0.20.0",
     "gts": "^5.2.0",
     "typescript": "^5.3.3",
-    "esbuild": "^0.20.0",
     "vite": "^5.0.12"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "framer-motion": "^11.0.3",
+    "sass": "^1.70.0"
+  }
 }
