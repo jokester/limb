@@ -17,17 +17,37 @@ interface ServerGroup {
   closeTcpSockets(): void;
 }
 
+function findAssetsDir(): string | null {
+  const publicAssetsDir = path.join(__dirname, 'public');
+  try {
+    const stat = fs.statSync(publicAssetsDir);
+    logger('???', stat);
+    if (stat.isDirectory()) {
+      return publicAssetsDir;
+    }
+  } catch (ignored) {}
+  return null;
+}
+
 function initServer(): ServerGroup {
   const httpServer = http.createServer();
+  const publicAssetsDir = findAssetsDir();
+
+  if (publicAssetsDir) {
+    logger('static assets hosting enabled', publicAssetsDir);
+  }
 
   httpServer.on('request', (req, res) => {
     logger('request', req.url);
 
-    const distDir = path.join(__dirname, 'public');
-    if (fs.existsSync(distDir)) {
+    if (publicAssetsDir) {
+      /**
+       * can be used to serve an SPA or static site
+       * e.g. the demo site of limb
+       * the dir should have a /index.html and other static assets
+       */
       serveHandler(req, res, {
-        public: distDir,
-        // route for SPA
+        public: publicAssetsDir,
         // NOTE static files take precedence over this
         rewrites: [{source: '/*', destination: '/index.html'}],
         cleanUrls: true,
@@ -37,6 +57,13 @@ function initServer(): ServerGroup {
       }).catch(e => {
         console.error('serveHandler: error handling request', e);
       });
+    } else {
+      res.writeHead(200, {'content-type': 'text/plain'}).end(
+        `
+Limb server is running.
+Please find more information at https://github.com/jokester/limb .
+        `.trim()
+      );
     }
   });
 
