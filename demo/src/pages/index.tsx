@@ -1,5 +1,5 @@
 import {PageProps} from './page-props';
-import {useRandomId} from './useRandomId';
+import {useRandomId} from '../hooks/use-random-id';
 
 export function IndexPage(props: PageProps) {
   const randomNamespace = useRandomId();

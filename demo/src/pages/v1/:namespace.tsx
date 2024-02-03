@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {PageProps} from '../page-props';
 import {io, Socket} from 'socket.io-client';
 import {useSingleton} from 'foxact/use-singleton';
-import {UserBoard} from '../../v1/userboard/user-board';
+import {UserBoard} from '../../apps/v1/user-board';
 
 const logger = debug('app:v1:demoPage');
 
