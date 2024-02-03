@@ -1,7 +1,10 @@
 import Hammer from 'hammerjs';
-import {Observable} from 'rxjs';
 
-const evNames = [
+import {Observable} from 'rxjs';
+import debug from 'debug';
+const logger = debug('hammerSource');
+
+const hammerEvNames = [
   'tap',
   'doubletap',
   'pan',
@@ -9,27 +12,34 @@ const evNames = [
   'press',
   'pinch',
   'rotate',
-];
+] as const;
 
-export function createHammerEventSource(
+export function createHammerManager(
   elem: HTMLElement,
   enablePinchRotate = true
-): Observable<HammerInput> {
-  return new Observable<HammerInput>(subscriber => {
-    const hammertime = new Hammer.Manager(elem);
-    if (enablePinchRotate) {
-      hammertime.get('pinch').set({enable: true});
-      hammertime.get('rotate').set({enable: true});
+): HammerManager {
+  const manager = new Hammer(elem);
+  if (enablePinchRotate) {
+    manager.get('pinch').set({enable: true});
+    manager.get('rotate').set({enable: true});
+  }
+  manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+  manager.get('swipe').set({direction: Hammer.DIRECTION_VERTICAL});
+  logger('hammer manager created', manager, elem);
+  return manager;
+}
+
+export function createLocalHammerInput$<T extends HammerInput = HammerInput>(
+  manager: HammerManager
+): Observable<T> {
+  return new Observable(subscriber => {
+    function handler(ev: HammerInput) {
+      logger('hammer event', ev);
+      subscriber.next(ev as T);
     }
-    hammertime.get('pan').set({direction: Hammer.DIRECTION_ALL});
-    hammertime.get('swipe').set({direction: Hammer.DIRECTION_VERTICAL});
-
-    hammertime.on(evNames.join(' '), ev => {
-      subscriber.next(ev);
-    });
-
+    manager.on(hammerEvNames.join(' '), handler);
     return () => {
-      hammertime.destroy();
+      manager.off(hammerEvNames.join(' '), handler);
     };
   });
 }
