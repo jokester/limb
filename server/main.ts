@@ -21,7 +21,6 @@ function findAssetsDir(): string | null {
   const publicAssetsDir = path.join(__dirname, 'public');
   try {
     const stat = fs.statSync(publicAssetsDir);
-    logger('???', stat);
     if (stat.isDirectory()) {
       return publicAssetsDir;
     }

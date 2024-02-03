@@ -1,7 +1,10 @@
 import debug from 'debug';
 import type sio from 'socket.io';
-
-import {ClientCommandBase, ClientCommands} from '../types/namespace-v2';
+import {
+  ClientCommands,
+  ClientMessage,
+  LimbV2MessageBase,
+} from './types/namespace-v2';
 
 const logger = debug('limb:server:v2');
 
@@ -39,7 +42,7 @@ function handleUserMessage(
   namespace: sio.Namespace,
   socket: sio.Socket,
   event: string,
-  _payload: ClientCommandBase
+  _payload: LimbV2MessageBase
 ) {
   logger('user message', socket.id, event, _payload.nonce);
 
@@ -68,21 +71,26 @@ function forwardMessage(
   namespace: sio.Namespace,
   socket: sio.Socket,
   event: string,
-  clientMessage: ClientCommandBase
+  clientMessage: ClientMessage
 ): void {
-  const rewritten = {
-    ...clientMessage,
-    to: undefined,
-    from: socket.id,
-  };
-  clientMessage.to?.forEach(to => {
-    if (to.startsWith('room:')) {
-      socket.in(to).emit(event, rewritten);
-    } else if (to.startsWith('socket:')) {
-      const socketId = to.slice('socket:'.length);
-      namespace.sockets.get(socketId)?.emit(event, rewritten);
+  const {to, viaRoom: _removed, ...rest} = clientMessage;
+
+  to?.forEach(recipient => {
+    if (recipient.startsWith('room:')) {
+      const roomId = recipient.slice('room:'.length);
+      socket.in(recipient).emit(event, {
+        ...rest,
+        from: socket.id,
+        viaRoom: roomId,
+      });
+    } else if (recipient.startsWith('socket:')) {
+      const socketId = recipient.slice('socket:'.length);
+      namespace.sockets.get(socketId)?.emit(event, {
+        ...rest,
+        from: socket.id,
+      });
     } else {
-      logger('unexpected to', socket.id, to);
+      logger('unexpected to format. not forwarding', socket.id, recipient);
     }
   });
 }
