@@ -23,7 +23,7 @@ function initServer(): ServerGroup {
   httpServer.on('request', (req, res) => {
     logger('request', req.url);
 
-    const distDir = path.join(__dirname, 'dist');
+    const distDir = path.join(__dirname, 'public');
     if (fs.existsSync(distDir)) {
       serveHandler(req, res, {
         public: distDir,
