@@ -1,4 +1,4 @@
-import {Observable, fromEvent, of, filter, map, tap, reduce, scan} from 'rxjs';
+import {Observable, fromEvent, of, filter, map, tap, scan} from 'rxjs';
 import {useMemo} from 'react';
 import type {Socket} from 'socket.io-client';
 import debug from 'debug';
@@ -13,7 +13,7 @@ interface UserEntry {
   latency: number;
 }
 
-function createRecentUser$(conn?: Socket): Observable<UserEntry[]> {
+export function createRecentUser$(conn?: Socket): Observable<UserEntry[]> {
   if (!conn) {
     return of([
       {
