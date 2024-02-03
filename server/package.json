@@ -2,14 +2,13 @@
   "name": "@jokester/limb-server",
   "version": "0.0.1",
   "description": "a purpose-free signaling server",
-  "main": "index.js",
+  "main": "main.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
     "clean": "gts clean",
     "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
-    "build": "esbuild --platform=node main.ts --bundle --outfile=../build/server-main.js",
-    "compile": "tsc",
+    "build": "node build.mjs",
     "fix": "gts fix"
   },
   "author": "",

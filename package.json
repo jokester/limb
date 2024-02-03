@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "build": "rm -rf build && npm run --workspace=server build && npm run --workspace=demo build",
+    "build": "rm -rf build && NODE_ENV=production npm run --workspace=server build && npm run --workspace=demo build",
     "demo": "npm run --workspace=demo dev",
     "server": "npm run --workspace=server dev",
     "tsc": "tsc"

@@ -1,8 +1,9 @@
 import debug from 'debug';
 import {useEffect, useState} from 'react';
 import {PageProps} from '../page-props';
-import {io} from 'socket.io-client';
+import {io, Socket} from 'socket.io-client';
 import {useSingleton} from 'foxact/use-singleton';
+import {UserBoard} from '../../v1/userboard/user-board';
 
 const logger = debug('app:v1:demoPage');
 
@@ -17,6 +18,7 @@ function getDefaultOrigin(): string {
 interface PageState {
   selfId: string;
   state: string;
+  conn?: Socket;
   logLines: string[];
 }
 
@@ -39,6 +41,7 @@ function usePageState(namespace: string): PageState {
   useEffect(() => {
     const defaultOrigin = getDefaultOrigin();
     const socket = io(`${defaultOrigin}/v1/${namespace}`);
+    setState(prev => ({...prev, conn: socket}));
 
     for (const event of ['connect', 'disconnect', 'connect_error']) {
       socket.on(event, (...rest: unknown[]) => {
@@ -110,13 +113,16 @@ function usePageState(namespace: string): PageState {
 export function V1DemoPage(props: PageProps<{namespace: string}>) {
   logger('V1RoomPage', props);
   const namespace = useSingleton(() => props.matches!.namespace).current;
-  const {selfId, state, logLines} = usePageState(namespace);
+  const {selfId, state, logLines, conn} = usePageState(namespace);
 
   return (
     <div>
       <div>namespace: {namespace}</div>
       <div>own client id: {selfId}</div>
       <div>connection state: {state}</div>
+      <div>
+        <UserBoard conn={conn} />
+      </div>
       <hr />
       <div className="h-64 overflow-y">
         {logLines.map(l => (
