@@ -82,11 +82,11 @@ Please find more information at https://github.com/jokester/limb .
   });
 
   ioServer
-    .of(/^\/v1\/[-\w:]+$/)
+    .of(/^\/v1\/[-\w:.]+$/)
     .on('connection', socket => onV1Connection(socket.nsp, socket));
 
   ioServer
-    .of(/^\/v2\/[-\w:]+$/)
+    .of(/^\/v2\/[-\w:.]+$/)
     .on('connection', socket => onV2Connection(socket.nsp, socket));
 
   return {
