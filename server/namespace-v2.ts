@@ -1,10 +1,6 @@
 import debug from 'debug';
 import type sio from 'socket.io';
-import {
-  ClientCommands,
-  ClientMessage,
-  LimbV2MessageBase,
-} from './types/namespace-v2';
+import {ClientCommands, ClientMessage, MessageBase} from './types/namespace-v2';
 
 const logger = debug('limb:server:v2');
 
@@ -42,7 +38,7 @@ function handleUserMessage(
   namespace: sio.Namespace,
   socket: sio.Socket,
   event: string,
-  _payload: LimbV2MessageBase
+  _payload: MessageBase
 ) {
   logger('user message', socket.id, event, _payload.nonce);
 

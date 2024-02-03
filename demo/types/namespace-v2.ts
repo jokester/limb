@@ -1,4 +1,4 @@
-export interface LimbV2MessageBase {
+export interface MessageBase {
   timestamp: string; // sender's local time
   nonce?: string; // can be used to match messages with responses
 }
@@ -6,10 +6,19 @@ export interface LimbV2MessageBase {
 /**
  * Messages used to control server
  */
-export interface ClientCommands extends Record<string, LimbV2MessageBase> {
-  'room:join': LimbV2MessageBase & {room: string};
-  'room:leave': LimbV2MessageBase & {room: string};
-  'sys:ping': LimbV2MessageBase;
+export interface ClientCommands extends Record<string, MessageBase> {
+  // maybe allow user to set a sticky message. Server will send this to all other socket (existing or new) sockets.
+  // each socket will only have one sticky message at a time
+  'user:setStick': MessageBase;
+  // set a secret, only messages with the secret can be forwarded to other sockets
+  // the secret effectively makes the namespace one-directional
+  'namespace:setBroadcastSecret': MessageBase & {secret: string};
+  // TODO: is this really useful? using a new namespace just seems simpler
+  // need real application to test the idea
+  'room:join': MessageBase & {room: string};
+  'room:leave': MessageBase & {room: string};
+  // ping server to check if it's alive & estimate latency
+  'sys:ping': MessageBase;
 }
 
 /**
@@ -17,13 +26,14 @@ export interface ClientCommands extends Record<string, LimbV2MessageBase> {
  */
 export interface ServerCommands {
   'sys:welcome': {socketId: string};
-  'sys:pong': LimbV2MessageBase;
+  'sys:pong': MessageBase;
+  'sys:reply': MessageBase & {successful: boolean; message?: string};
 }
 
 /**
  * Messages forwarded between clients
  */
-export interface ClientMessage extends LimbV2MessageBase {
+export interface ClientMessage extends MessageBase {
   /**
    *
    */
@@ -33,7 +43,8 @@ export interface ClientMessage extends LimbV2MessageBase {
    */
   from?: string;
   /**
-   * automatically added by server, if the message is forwarded via a room
+   * only exists if the message is forwarded via a room
+   * automatically added by server
    */
   viaRoom?: string;
 }
