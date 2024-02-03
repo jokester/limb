@@ -79,8 +79,11 @@ export function UserBoard({conn}: {conn?: Socket}) {
       Recent users:
       {entries.map(e => (
         <div className="pl-1" key={e.clientId}>
-          {e.clientId}: last seen {e.lastSeen.toISOString()}, latency={' '}
-          {e.latency.toFixed(2)} ms
+          {e.clientId}:
+          <span>
+            {e.lastSeen.toISOString()} ~ {e.firstSeen.toISOString()}
+          </span>
+          <span className="ml-1">latency = {e.latency.toFixed(2)} ms</span>
         </div>
       ))}
     </div>
