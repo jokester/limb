@@ -1,7 +1,7 @@
 import {RefObject, useEffect} from 'react';
 import {Observable} from 'rxjs';
 import {UnifiedHammerInput} from './unify';
-import {animate} from 'framer-motion';
+import {animate} from 'framer-motion/dom';
 
 function addTap(parent: HTMLElement, ev: UnifiedHammerInput) {
   const f = document.createElement('div');
@@ -21,7 +21,21 @@ export function useInputReplay(
     const elem = ref.current!;
 
     const timer = setInterval(() => {
-      addTap(elem, {type: 'tap'});
+      addTap(elem, {
+        type: 'tap',
+        eventType: 'end',
+        clientId: '',
+        timestamp: new Date().toISOString(),
+        elementSize: {
+          width: 100,
+          height: 100,
+        },
+        center: {
+          x: 50,
+          y: 50,
+        },
+        latency: 0,
+      });
     }, 1000);
 
     return () => {
