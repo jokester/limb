@@ -7,11 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
     "clean": "gts clean",
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "compile": "tsc",
-    "server": "DEBUG=limb:*,-socket.io:* nodemon --ignore src/ --exec ts-node-transpile-only server.ts",
     "fix": "gts fix"
   },
   "author": "",
