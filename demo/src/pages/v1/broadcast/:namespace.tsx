@@ -1,19 +1,11 @@
 import debug from 'debug';
 import {useEffect, useState} from 'react';
-import {PageProps} from '../page-props';
 import {io, Socket} from 'socket.io-client';
 import {useSingleton} from 'foxact/use-singleton';
-import {UserBoard} from '../../apps/v1/user-board';
+import {UserBoard} from '../../../apps/v1/user-board';
+import {getSocketServerOrigin, PageProps} from '../../_shared';
 
 const logger = debug('app:v1:demoPage');
-
-function getDefaultOrigin(): string {
-  const isLocalOrigin = ['localhost', '127.0.0.1'].includes(location.hostname);
-  const defaultOrigin = isLocalOrigin
-    ? 'http://localhost:3000'
-    : 'https://limb.jokester.io';
-  return defaultOrigin;
-}
 
 interface PageState {
   selfId: string;
@@ -39,7 +31,7 @@ function usePageState(namespace: string): PageState {
   }
 
   useEffect(() => {
-    const defaultOrigin = getDefaultOrigin();
+    const defaultOrigin = getSocketServerOrigin();
     const socket = io(`${defaultOrigin}/v1/${namespace}`);
     setState(prev => ({...prev, conn: socket}));
 
@@ -110,7 +102,7 @@ function usePageState(namespace: string): PageState {
   return state;
 }
 
-export function V1DemoPage(props: PageProps<{namespace: string}>) {
+export function BroadcastPage(props: PageProps<{namespace: string}>) {
   logger('V1RoomPage', props);
   const namespace = useSingleton(() => props.matches!.namespace).current;
   const {selfId, state, logLines, conn} = usePageState(namespace);
