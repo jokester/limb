@@ -1,5 +1,5 @@
 import {PageProps} from '../../_shared';
-import {HammerTouchDemo} from '../../../apps/hammer/demo';
+import {HammerTouchDemo} from '../../../apps/v1/hammer/demo';
 
 export function MultiDeviceGesturePage(props: PageProps<{namespace: string}>) {
   return (

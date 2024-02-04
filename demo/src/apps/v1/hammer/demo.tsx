@@ -1,7 +1,7 @@
 import {PropsWithChildren, useEffect, useRef, useState} from 'react';
-import {createHammerManager, createLocalHammerInput$} from './source';
+import {createHammerManager, createLocalHammerInput$} from './local-source';
 import {EMPTY, Observable} from 'rxjs';
-import {useObservable} from '../../hooks/use-observable';
+import {useObservable} from '../../../hooks/use-observable';
 
 export function HammerTouchDemo(props: PropsWithChildren<{onEvent?: unknown}>) {
   const touchableRef = useRef<HTMLDivElement>(null);

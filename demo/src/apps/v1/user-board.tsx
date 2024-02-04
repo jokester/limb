@@ -1,10 +1,11 @@
-import {Observable, fromEvent, of, filter, map, tap, scan} from 'rxjs';
+import {Observable, of, scan, tap} from 'rxjs';
 import {useMemo} from 'react';
 import type {Socket} from 'socket.io-client';
 import debug from 'debug';
 import {useObservable} from '../../hooks/use-observable';
+import {create$UserMessage} from './user-message';
 
-const logger = debug('limb:apps:v1:userBoard');
+const logger = debug('limb:v1:apps:userBoard');
 
 interface UserEntry {
   clientId: string;
@@ -13,7 +14,7 @@ interface UserEntry {
   latency: number;
 }
 
-export function createRecentUser$(conn?: Socket): Observable<UserEntry[]> {
+export function create$RecentUser(conn?: Socket): Observable<UserEntry[]> {
   if (!conn) {
     return of([
       {
@@ -25,13 +26,9 @@ export function createRecentUser$(conn?: Socket): Observable<UserEntry[]> {
     ]);
   }
 
-  const messages: Observable<[messageType: string, payload: unknown]> =
-    fromEvent(conn, 'message');
-
-  const $pings = messages.pipe(
-    filter(msg => msg[0] === 'ping'),
-    map(msg => msg[1] as {clientId: string; timestamp: string}),
-    tap(ev => logger('ping', ev))
+  const $pings = create$UserMessage<{clientId: string; timestamp: string}>(
+    conn,
+    'ping'
   );
 
   return $pings.pipe(
@@ -71,7 +68,7 @@ export function createRecentUser$(conn?: Socket): Observable<UserEntry[]> {
  * A component to show recent-saw users in a limb v1 namespace.
  */
 export function UserBoard({conn}: {conn?: Socket}) {
-  const $userBoard = useMemo(() => createRecentUser$(conn), [conn]);
+  const $userBoard = useMemo(() => create$RecentUser(conn), [conn]);
   const entries = useObservable($userBoard, []);
 
   return (
