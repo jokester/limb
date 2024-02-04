@@ -1,9 +1,12 @@
 export function getSocketServerOrigin(): string {
-  const isLocalOrigin = ['localhost', '127.0.0.1'].includes(location.hostname);
-  const defaultOrigin = isLocalOrigin
-    ? 'http://localhost:3000'
-    : 'https://limb.jokester.io';
-  return defaultOrigin;
+  const isUnsafeOrigin = location.protocol !== 'https:';
+  console.error(
+    'isUnsafeOrigin',
+    isUnsafeOrigin,
+    location.protocol,
+    location.host
+  );
+  return isUnsafeOrigin ? 'http://localhost:3000' : 'https://limb.jokester.io';
 }
 
 export interface PageProps<M extends Record<string, string> = {}> {
