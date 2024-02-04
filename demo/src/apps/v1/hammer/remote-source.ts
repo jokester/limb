@@ -1,15 +1,34 @@
 import {Socket} from 'socket.io-client';
-import {filter, fromEvent, Observable} from 'rxjs';
+import {filter, Observable} from 'rxjs';
 import {create$UserMessage} from '../user-message';
 
-interface RemoteHammerInput extends Pick<HammerInput, 'type' | 'eventType'> {
+export interface SerializedHammerInput
+  extends Pick<HammerInput, 'type' | 'eventType'> {
   clientId: string;
+  timestamp: string;
 }
 
-export function createRemoteInput$(
+export const remoteEventName = 'hammerInput';
+
+export function createRemoteHammerInput$(
   s: Socket,
   ownClientId: string
-): Observable<RemoteHammerInput> {
-  const removeInput$ = create$UserMessage<RemoteHammerInput>(s, 'hammerInput');
+): Observable<SerializedHammerInput> {
+  const removeInput$ = create$UserMessage<SerializedHammerInput>(
+    s,
+    remoteEventName
+  );
   return removeInput$.pipe(filter(ev => ev.clientId !== ownClientId));
+}
+
+export function buildRemoteHammerInput(
+  orig: HammerInput,
+  clientId: string
+): SerializedHammerInput {
+  return {
+    eventType: orig.eventType,
+    type: orig.type,
+    clientId,
+    timestamp: new Date().toISOString(),
+  };
 }

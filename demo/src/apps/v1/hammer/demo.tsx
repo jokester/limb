@@ -1,24 +1,51 @@
 import {PropsWithChildren, useEffect, useRef, useState} from 'react';
 import {createHammerManager, createLocalHammerInput$} from './local-source';
-import {EMPTY, Observable} from 'rxjs';
+import {EMPTY, Observable, Subject} from 'rxjs';
 import {useObservable} from '../../../hooks/use-observable';
+import {io, Socket} from 'socket.io-client';
+import {
+  createRemoteHammerInput$,
+  remoteEventName,
+  SerializedHammerInput,
+} from './remote-source';
+import {getSocketServerOrigin} from '../../../pages/_shared';
+import debug from 'debug';
+import {createUnifiedSource, UnifiedHammerInput} from './unify';
 
-export function HammerTouchDemo(props: PropsWithChildren<{onEvent?: unknown}>) {
+const logger = debug('limb:v1:hammer:demo');
+
+export function HammerTouchDemo({
+  ownClientId,
+  namespace,
+}: PropsWithChildren<{namespace: string; ownClientId: string}>) {
   const touchableRef = useRef<HTMLDivElement>(null);
-  const [localEvent$, setLocalEvent$] =
-    useState<Observable<HammerInput>>(EMPTY);
+  const [unified$, setUnified$] =
+    useState<Observable<UnifiedHammerInput>>(EMPTY);
 
   useEffect(() => {
+    const defaultOrigin = getSocketServerOrigin();
+
+    const socket = io(`${defaultOrigin}/v1/${namespace}`);
     const manager = createHammerManager(touchableRef.current!);
 
-    setLocalEvent$(createLocalHammerInput$(manager));
+    const localInput$ = createLocalHammerInput$(manager, ownClientId);
+    const remoteInput$ = createRemoteHammerInput$(socket, ownClientId);
+
+    const forwardLocal = localInput$.subscribe(ev => {
+      socket.volatile.send(remoteEventName, ev);
+    });
+
+    const unifiedInput$ = createUnifiedSource(localInput$, remoteInput$);
+    setUnified$(unifiedInput$);
 
     return () => {
+      forwardLocal.unsubscribe();
       manager.destroy();
+      socket.close();
     };
-  }, []);
+  }, [namespace, ownClientId]);
 
-  const wtf = useObservable(localEvent$, null);
+  useObservable(unified$, null);
 
   return (
     <div className="text-center py-2">
