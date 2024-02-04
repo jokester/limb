@@ -4,6 +4,7 @@ import {io, Socket} from 'socket.io-client';
 import {useSingleton} from 'foxact/use-singleton';
 import {UserBoard} from '../../../apps/v1/user-board';
 import {getSocketServerOrigin, PageProps} from '../../_shared';
+import {useRandomId} from '../../../hooks/use-random-id';
 
 const logger = debug('app:v1:demoPage');
 
@@ -15,9 +16,7 @@ interface PageState {
 }
 
 function usePageState(namespace: string): PageState {
-  const selfId = useSingleton(() =>
-    Math.random().toString(16).slice(2, 10)
-  ).current;
+  const selfId = useRandomId();
 
   const [state, setState] = useState<PageState>(() => ({
     selfId,
