@@ -1,11 +1,5 @@
 export function getSocketServerOrigin(): string {
   const isUnsafeOrigin = location.protocol !== 'https:';
-  console.error(
-    'isUnsafeOrigin',
-    isUnsafeOrigin,
-    location.protocol,
-    location.host
-  );
   return isUnsafeOrigin ? 'http://localhost:3000' : 'https://limb.jokester.io';
 }
 
