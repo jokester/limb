@@ -1,8 +1,8 @@
 import Hammer from 'hammerjs';
 
-import {map, Observable} from 'rxjs';
+import {map, Observable, tap} from 'rxjs';
 import debug from 'debug';
-import {buildRemoteHammerInput, SerializedHammerInput} from './remote-source';
+import {serializeHammerInput, SerializedHammerInput} from './remote-source';
 const logger = debug('hammerSource');
 
 const hammerEvNames = [
@@ -35,7 +35,7 @@ export function createHammerInput$<T extends HammerInput = HammerInput>(
 ): Observable<T> {
   return new Observable(subscriber => {
     function handler(ev: HammerInput) {
-      logger('hammer event', ev);
+      logger('raw hammer event', ev);
       subscriber.next(ev as T);
     }
     manager.on(hammerEvNames.join(' '), handler);
@@ -47,9 +47,11 @@ export function createHammerInput$<T extends HammerInput = HammerInput>(
 
 export function createLocalHammerInput$(
   manager: HammerManager,
-  ownClientId: string
+  ownClientId: string,
+  baseElem: HTMLElement
 ): Observable<SerializedHammerInput> {
   return createHammerInput$(manager).pipe(
-    map(orig => buildRemoteHammerInput(orig, ownClientId))
+    map(orig => serializeHammerInput(orig, ownClientId, baseElem)),
+    tap(ev => logger('local hammer event', ev, '=>', 'remote'))
   );
 }

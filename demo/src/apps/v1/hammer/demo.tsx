@@ -11,6 +11,7 @@ import {
 import {getSocketServerOrigin} from '../../../pages/_shared';
 import debug from 'debug';
 import {createUnifiedSource, UnifiedHammerInput} from './unify';
+import {useInputReplay} from './replay';
 
 const logger = debug('limb:v1:hammer:demo');
 
@@ -52,6 +53,8 @@ export function HammerTouchDemo({
   }, [namespace, ownClientId]);
 
   useObservable(unified$, null);
+
+  useInputReplay(touchableRef, unified$);
 
   return (
     <div className="text-center py-2">
