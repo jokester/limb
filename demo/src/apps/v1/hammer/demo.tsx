@@ -1,6 +1,6 @@
 import {PropsWithChildren, useEffect, useRef, useState} from 'react';
 import {createHammerManager, createLocalHammerInput$} from './local-source';
-import {EMPTY, Observable, Subject} from 'rxjs';
+import {EMPTY, Observable, Subject, share} from 'rxjs';
 import {useObservable} from '../../../hooks/use-observable';
 import {io, Socket} from 'socket.io-client';
 import {
@@ -28,10 +28,16 @@ export function HammerTouchDemo({
     const socket = io(`${defaultOrigin}/v1/${namespace}`);
     const manager = createHammerManager(touchableRef.current!);
 
-    const localInput$ = createLocalHammerInput$(manager, ownClientId);
+    const localInput$ = createLocalHammerInput$(
+      manager,
+      ownClientId,
+      touchableRef.current!
+    ).pipe(share());
+
     const remoteInput$ = createRemoteHammerInput$(socket, ownClientId);
 
     const forwardLocal = localInput$.subscribe(ev => {
+      logger('forward local event', ev);
       socket.volatile.send(remoteEventName, ev);
     });
 
