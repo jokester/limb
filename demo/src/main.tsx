@@ -1,6 +1,6 @@
 import {render} from 'preact';
 import Router from 'preact-router';
-import './index.css';
+import './app.scss';
 import debug from 'debug';
 import {NotFoundPage} from './pages/404';
 import {IndexPage} from './pages';
