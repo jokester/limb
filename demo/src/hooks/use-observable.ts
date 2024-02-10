@@ -6,12 +6,16 @@ import debug from 'debug';
 const logger = debug('useObservable');
 
 export function useObservable<T>(
-  src: Observable<T>,
+  src: null | undefined | Observable<T>,
   defaultValue: T,
   errorValue = defaultValue
 ): T {
   const [value, setValue] = useState(defaultValue);
   useEffect(() => {
+    if (!src) {
+      setValue(defaultValue);
+      return;
+    }
     logger('useObservable subscribe', src);
     const sub = src.subscribe({
       next(value) {
