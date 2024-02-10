@@ -1,4 +1,5 @@
 import {motion} from 'framer-motion';
+import svgCanvas from './svg-canvas.module.scss';
 
 const draw = {
   hidden: {pathLength: 0, opacity: 0},
@@ -19,6 +20,7 @@ const draw = {
 export function FramerMotionedSvg() {
   return (
     <motion.svg
+      className={svgCanvas.styleRoot}
       width="600"
       height="600"
       viewBox="0 0 600 600"
