@@ -1,6 +1,5 @@
 import {useRandomId} from '../hooks/use-random-id';
 import {PageProps} from './_shared';
-import {FramerMotionedSvg} from '../apps/v1/hammer/framer-motioned-svg';
 
 function NamespaceV1Demo({namespace}: {namespace: string}) {
   return (
@@ -25,11 +24,10 @@ export function IndexPage(props: PageProps) {
 
   return (
     <div>
-      <h1>Limb: a socket.io signaling server</h1>
+      <h1>Limb: just a socket.io signaling server</h1>
       <p>It can be used to forward between peers</p>
       <NamespaceV1Demo namespace={randomNamespaceV1} />
       <hr />
-      <FramerMotionedSvg />
     </div>
   );
 }
