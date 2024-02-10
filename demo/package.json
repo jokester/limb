@@ -19,6 +19,7 @@
     "@blueprintjs/core": "^5.9.1",
     "@blueprintjs/icons": "^5.7.1",
     "@jokester/ts-commonutil": "^0.4.2",
+    "clsx": "^2.1.0",
     "debug": "^4.3.4",
     "foxact": "^0.2.31",
     "fp-ts": "^2.16.2",

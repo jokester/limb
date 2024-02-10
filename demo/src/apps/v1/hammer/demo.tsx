@@ -1,17 +1,13 @@
 import {PropsWithChildren, useEffect, useRef, useState} from 'react';
 import {createHammerManager, createLocalHammerInput$} from './local-source';
-import {EMPTY, Observable, Subject, share} from 'rxjs';
+import {EMPTY, Observable, share} from 'rxjs';
 import {useObservable} from '../../../hooks/use-observable';
-import {io, Socket} from 'socket.io-client';
-import {
-  createRemoteHammerInput$,
-  remoteEventName,
-  SerializedHammerInput,
-} from './remote-source';
+import {io} from 'socket.io-client';
+import {createRemoteHammerInput$, remoteEventName} from './remote-source';
 import {getSocketServerOrigin} from '../../../pages/_shared';
 import debug from 'debug';
 import {createUnifiedSource, UnifiedHammerInput} from './unify';
-import {useInputReplay} from './replay';
+import {useInputReplayElements} from './replay';
 
 const logger = debug('limb:v1:hammer:demo');
 
@@ -54,14 +50,13 @@ export function HammerTouchDemo({
 
   useObservable(unified$, null);
 
-  useInputReplay(touchableRef, unified$);
+  const svgChildren = useInputReplayElements(unified$, ownClientId);
 
   return (
     <div className="text-center py-2">
-      <svg
-        className="inline-block w-64 h-64 bg-gray-200"
-        ref={touchableRef}
-      ></svg>
+      <svg className="inline-block w-64 h-64 bg-gray-200" ref={touchableRef}>
+        {svgChildren}
+      </svg>
     </div>
   );
 }
