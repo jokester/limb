@@ -3,7 +3,7 @@ import {Observable} from 'rxjs';
 import {UnifiedHammerInput} from './unify';
 import {animate} from 'framer-motion/dom';
 
-function addTap(parent: HTMLElement, ev: UnifiedHammerInput) {
+function addTap(parent: HTMLElement | SVGElement, ev: UnifiedHammerInput) {
   const f = document.createElement('div');
   f.className = 'w-4 h-4 bg-red-500 rounded-full absolute';
   parent.appendChild(f);
@@ -14,7 +14,7 @@ function addTap(parent: HTMLElement, ev: UnifiedHammerInput) {
 }
 
 export function useInputReplay(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | SVGElement>,
   src: Observable<UnifiedHammerInput>
 ): void {
   useEffect(() => {

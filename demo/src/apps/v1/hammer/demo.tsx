@@ -19,7 +19,7 @@ export function HammerTouchDemo({
   ownClientId,
   namespace,
 }: PropsWithChildren<{namespace: string; ownClientId: string}>) {
-  const touchableRef = useRef<HTMLDivElement>(null);
+  const touchableRef = useRef<SVGSVGElement>(null);
   const [unified$, setUnified$] =
     useState<Observable<UnifiedHammerInput>>(EMPTY);
 
@@ -58,10 +58,10 @@ export function HammerTouchDemo({
 
   return (
     <div className="text-center py-2">
-      <div
+      <svg
         className="inline-block w-64 h-64 bg-gray-200"
         ref={touchableRef}
-      ></div>
+      ></svg>
     </div>
   );
 }

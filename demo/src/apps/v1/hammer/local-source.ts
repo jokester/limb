@@ -16,7 +16,7 @@ const hammerEvNames = [
 ] as const;
 
 export function createHammerManager(
-  elem: HTMLElement,
+  elem: HTMLElement | SVGElement,
   enablePinchRotate = true
 ): HammerManager {
   const manager = new Hammer(elem);
@@ -48,7 +48,7 @@ export function createHammerInput$<T extends HammerInput = HammerInput>(
 export function createLocalHammerInput$(
   manager: HammerManager,
   ownClientId: string,
-  baseElem: HTMLElement
+  baseElem: HTMLElement | SVGElement
 ): Observable<SerializedHammerInput> {
   return createHammerInput$(manager).pipe(
     map(orig => serializeHammerInput(orig, ownClientId, baseElem)),
