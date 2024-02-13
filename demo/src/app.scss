@@ -4,3 +4,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+img[alt=qrcode] {
+    image-rendering: pixelated;
+}
