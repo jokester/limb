@@ -14,6 +14,12 @@ export function MultiDeviceGesturePage(props: PageProps<{namespace: string}>) {
         <p>fps: {fps.toFixed(2)}</p>
       </div>
       <hr />
+      <p>
+        1.  tap or double-tap the gray plate, to see touch events from current device.
+      </p>
+      <p>
+        2. copy URL of this page and open in other device, you can see touch events get forwarded between devices.
+      </p>
       <HammerTouchDemo
         namespace={props.matches!.namespace}
         ownClientId={ownId}
