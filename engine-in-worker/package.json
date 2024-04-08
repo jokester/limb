@@ -13,13 +13,15 @@
     "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
     "engine.io": "^6.5.4",
+    "hono": "^4.2.2",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240405.0",
     "@types/debug": "^4.1.12",
     "@types/node": "^18",
-    "gts": "*",
     "esbuild": "*",
+    "gts": "*",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "*"

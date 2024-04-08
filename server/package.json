@@ -16,6 +16,7 @@
   "dependencies": {
     "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
+    "hono": "^4.2.2",
     "serve-handler": "^6.1.5",
     "socket.io": "^4.7.5"
   },
@@ -23,8 +24,8 @@
     "@types/debug": "^4.1.12",
     "@types/node": "^18",
     "@types/serve-handler": "^6.1.4",
-    "gts": "*",
     "esbuild": "*",
+    "gts": "*",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "*"
