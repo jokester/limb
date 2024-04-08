@@ -1,5 +1,5 @@
 {
-  "name": "@jokester/limb-server",
+  "name": "@jokester/limb-sio-worker",
   "version": "0.0.1",
   "description": "a purpose-free signaling server",
   "main": "main.ts",
@@ -22,12 +22,15 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "@types/node": "^18",
+    "@types/node": "*",
     "@types/serve-handler": "^6.1.4",
     "esbuild": "*",
     "gts": "*",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
     "typescript": "*"
+  },
+  "overrides": {
+    "@types/node": "^18"
   }
 }

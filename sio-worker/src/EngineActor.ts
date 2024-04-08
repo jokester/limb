@@ -10,7 +10,7 @@ import {
 /**
  * HTTP + WS handler
  */
-class Actor implements DurableObject {
+export class EngineActor implements DurableObject {
   async fetch(request: Request) {
     const response = new Response(JSON.stringify({hello: 'world'}), {
       status: 200,
@@ -18,5 +18,3 @@ class Actor implements DurableObject {
     return response;
   }
 }
-
-export default new Actor();

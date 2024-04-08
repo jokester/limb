@@ -1,0 +1,9 @@
+# see https://developers.cloudflare.com/workers/wrangler/configuration#importing-assets-within-a-worker
+
+name = "engine-worker"
+main = "src/index.ts"
+compatibility_date = "2024-04-01"
+
+workers_dev = false
+[dev]
+port = 18787

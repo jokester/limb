@@ -10,18 +10,20 @@
   },
   "workspaces": [
     "./server",
-    "./engine-in-worker",
+    "./sio-worker",
     "./demo"
   ],
   "engines": {
-    "node": "^18",
+    "node": "^18 || ^20",
     "npm": "^10"
   },
   "engineStrict": true,
   "devDependencies": {
+    "@types/node": "^18",
     "esbuild": "^0.20.0",
     "gts": "^5.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^3.48.0"
   },
   "overrides": {
     "@types/node": "^18"
