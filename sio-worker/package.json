@@ -4,7 +4,7 @@
   "description": "engine.io protocol with CF worker",
   "main": "main.ts",
   "scripts": {
-    "build": "node build.mjs",
+    "dev": "wrangler dev",
     "fix": "gts fix"
   },
   "author": "",

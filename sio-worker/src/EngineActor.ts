@@ -1,12 +1,16 @@
-import {
+import type {
   DurableObject,
   Request,
+  // @ts-ignore
   Response,
   WebSocket,
   WebSocketEventMap,
   WebSocketPair,
+  ServiceWorkerGlobalScope,
 } from '@cloudflare/workers-types';
 
+declare const self: ServiceWorkerGlobalScope;
+const {Response, fetch, addEventListener} = self;
 /**
  * HTTP + WS handler
  */
