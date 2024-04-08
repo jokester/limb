@@ -18,7 +18,7 @@
   "dependencies": {
     "@blueprintjs/core": "^5.9.1",
     "@blueprintjs/icons": "^5.7.1",
-    "@jokester/ts-commonutil": "^0.4.2",
+    "@jokester/ts-commonutil": "^0.6.0",
     "clsx": "^2.1.0",
     "debug": "^4.3.4",
     "foxact": "^0.2.31",

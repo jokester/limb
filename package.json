@@ -10,6 +10,7 @@
   },
   "workspaces": [
     "./server",
+    "./engine-in-worker",
     "./demo"
   ],
   "engines": {
@@ -21,6 +22,9 @@
     "esbuild": "^0.20.0",
     "gts": "^5.2.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "@types/node": "^18"
   },
   "author": "",
   "license": "MIT"

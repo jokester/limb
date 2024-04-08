@@ -1,13 +1,9 @@
 {
-  "name": "@jokester/limb-server",
+  "name": "@jokester/worker-engine",
   "version": "0.0.1",
-  "description": "a purpose-free signaling server",
+  "description": "engine.io protocol with CF worker",
   "main": "main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "gts lint",
-    "clean": "gts clean",
-    "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
     "build": "node build.mjs",
     "fix": "gts fix"
   },
@@ -16,13 +12,12 @@
   "dependencies": {
     "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
-    "serve-handler": "^6.1.5",
+    "engine.io": "^6.5.4",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
     "@types/node": "^18",
-    "@types/serve-handler": "^6.1.4",
     "gts": "*",
     "esbuild": "*",
     "nodemon": "^3.0.3",
