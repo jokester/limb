@@ -1,4 +1,3 @@
-import {PropsWithChildren, useEffect} from 'react';
 import {useAsyncEffect} from '@jokester/ts-commonutil/lib/react/hook/use-async-effect';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
 import {PageProps} from './_shared';
@@ -10,10 +9,14 @@ function useWsDemo(url = wsUrl) {
     const socket = await new Promise<WebSocket>((resolve, reject) => {
       const ws = new WebSocket(url);
       ws.onopen = () => resolve(ws);
+      ws.onmessage = msg => {
+        console.log('got msg', msg);
+      };
+      ws.onclose = ev => console.log('closed', ev);
       ws.onerror = reject;
     });
 
-    while (running.current) {
+    while (running.current && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({time: Date.now()}));
       await wait(1e3);
     }
