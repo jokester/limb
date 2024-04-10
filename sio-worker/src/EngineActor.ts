@@ -3,9 +3,22 @@ import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
+import * as sio from 'socket.io';
+import type * as eio from 'engine.io';
+import {EventEmitter} from 'node:events';
 
 declare const self: CF.ServiceWorkerGlobalScope;
 const {Response, fetch, addEventListener, WebSocketPair} = self;
+
+// @ts-ignore
+class FakeEngine
+  extends EventEmitter
+  implements InstanceType<typeof eio.BaseServer>
+{
+  constructor(readonly opts?: eio.ServerOptions) {
+    super();
+  }
+}
 
 /**
  * HTTP + WS handler
@@ -48,6 +61,13 @@ export class EngineActor implements CF.DurableObject {
     const {value: app} = this.honoApp;
     return app.fetch(req, this.env);
   }
+
+  readonly x = lazy(() => {
+    const server = new sio.Server({
+      transports: ['websocket'],
+    });
+    server.bind();
+  });
 
   webSocketClose(
     ws: WebSocket,
