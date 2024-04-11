@@ -5,6 +5,7 @@
   "main": "main.ts",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "wrangler deploy --outdir=./build --dry-run",
     "fix": "gts fix"
   },
   "author": "",
