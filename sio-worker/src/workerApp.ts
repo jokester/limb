@@ -4,6 +4,7 @@ import type {DurableObjectNamespace} from '@cloudflare/workers-types';
 
 export interface WorkerBindings extends Record<string, unknown> {
   engineActor: DurableObjectNamespace;
+  socketActor: DurableObjectNamespace;
 }
 
 export const workerApp = new Hono<{Bindings: WorkerBindings}>().all(

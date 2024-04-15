@@ -3,27 +3,14 @@ import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
-import * as sio from 'socket.io';
-import type * as eio from 'engine.io';
-import {EventEmitter} from 'node:events';
 
 declare const self: CF.ServiceWorkerGlobalScope;
 const {Response, fetch, addEventListener, WebSocketPair} = self;
 
-// @ts-ignore
-class FakeEngine
-  extends EventEmitter
-  implements InstanceType<typeof eio.BaseServer>
-{
-  constructor(readonly opts?: eio.ServerOptions) {
-    super();
-  }
-}
-
 /**
- * HTTP + WS handler, runs engine.io code
+ * A basic WS handler
  */
-export class EngineActor implements CF.DurableObject {
+export class WsActor implements CF.DurableObject {
   constructor(
     private state: CF.DurableObjectState,
     private readonly env: WorkerBindings
@@ -57,20 +44,13 @@ export class EngineActor implements CF.DurableObject {
     })
   );
 
-  fetch(req: Request): Response | Promise<Response> {
+  fetch(req: CF.Request): CF.Response | Promise<CF.Response> {
     const {value: app} = this.honoApp;
-    return app.fetch(req, this.env);
+    return app.fetch(req as any as Request, this.env) as any as CF.Response;
   }
 
-  readonly x = lazy(() => {
-    const server = new sio.Server({
-      transports: ['websocket'],
-    });
-    server.bind();
-  });
-
   webSocketClose(
-    ws: WebSocket,
+    ws: CF.WebSocket,
     code: number,
     reason: string,
     wasClean: boolean
@@ -84,7 +64,7 @@ export class EngineActor implements CF.DurableObject {
   }
 
   webSocketMessage(
-    ws: WebSocket,
+    ws: CF.WebSocket,
     message: string | ArrayBuffer
   ): void | Promise<void> {
     if (ws.readyState !== WebSocket.OPEN) {
@@ -98,7 +78,7 @@ export class EngineActor implements CF.DurableObject {
     );
   }
 
-  webSocketError(ws: WebSocket, error: unknown): void | Promise<void> {
+  webSocketError(ws: CF.WebSocket, error: unknown): void | Promise<void> {
     console.log('websocket error', error);
   }
 }
