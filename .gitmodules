@@ -1,6 +1,6 @@
 [submodule "deps/engine.io"]
-	path = deps/engine.io
+	path = engine.io
 	url = git@github.com:jokester/engine.io.git
 [submodule "deps/socket.io"]
-	path = deps/socket.io
+	path = socket.io
 	url = git@github.com:jokester/socket.io.git
