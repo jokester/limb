@@ -3,9 +3,11 @@ import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
-import * as sio from 'socket.io';
 import type * as eio from 'engine.io';
 import {EventEmitter} from 'node:events';
+import {BaseServer as EioBaseServer} from 'engine.io';
+import {WebSocket as EioWebSocket} from 'engine.io/lib/transports/websocket';
+import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
 
 declare const self: CF.ServiceWorkerGlobalScope;
 const {Response, fetch, addEventListener, WebSocketPair} = self;
@@ -20,17 +22,67 @@ class FakeEngine
   }
 }
 
+export interface EngineActorMethods {}
+
+class DoWebSocket extends EioWebSocket {}
+
+class EioServer extends EioBaseServer {
+  constructor() {
+    super({
+      transports: ['do-ws'],
+    });
+  }
+  init() {}
+
+  cleanup() {}
+
+  protected createTransport(transportName: any, req: any): any {
+    if (transportName !== 'websocket') {
+      throw new Error('should not be here');
+    }
+  }
+
+  async onWebsocket(ws: CF.WebSocket): Promise<void> {
+    const fail = new Deferred<unknown>();
+
+    const t: EioWebSocket = await this.handshake(
+      'websocket',
+      {
+        query: {
+          EIO: '4',
+          websocket: ws,
+        },
+      },
+      (errCode, errContext) => fail.reject(new Error(errCode))
+    );
+    if (fail.resolved) {
+      await fail;
+    }
+  }
+}
+
 /**
- * HTTP + WS handler, runs engine.io code
+ * WS handler based on engine.io
  */
 export class EngineActor implements CF.DurableObject {
+  static call(state: CF.DurableObjectState, env: WorkerBindings) {
+    return new EngineActor(state, env);
+  }
   constructor(
     private state: CF.DurableObjectState,
     private readonly env: WorkerBindings
   ) {}
 
+  readonly eioServer = lazy(() => {
+    const s = new EioServer();
+    s.on('connection', socket => {
+      // TODO: propagate to sio.Server equivalent
+    });
+    return s
+  });
+
   readonly honoApp = lazy(() =>
-    new Hono<WorkerBindings>().get('/*', async ctx => {
+    new Hono<{Bindings: WorkerBindings}>().get('/*', async ctx => {
       if (ctx.req.header('Upgrade') !== 'websocket') {
         return new Response(null, {
           status: 426,
@@ -43,15 +95,7 @@ export class EngineActor implements CF.DurableObject {
       this.state.acceptWebSocket(server);
       server.accept();
 
-      setTimeout(async () => {
-        for (let i = 0; i < 3; i++) {
-          server.send(
-            JSON.stringify({message: 'server sent', serverTime: Date.now()})
-          );
-          await wait(1e3);
-        }
-        server.close(1002, 'server close');
-      });
+      this.eioServer.value.onWebsocket(server)
 
       return new Response(null, {status: 101, webSocket: client});
     })
