@@ -78,7 +78,7 @@ export class EngineActor implements CF.DurableObject {
     s.on('connection', socket => {
       // TODO: propagate to sio.Server equivalent
     });
-    return s
+    return s;
   });
 
   readonly honoApp = lazy(() =>
@@ -95,7 +95,7 @@ export class EngineActor implements CF.DurableObject {
       this.state.acceptWebSocket(server);
       server.accept();
 
-      this.eioServer.value.onWebsocket(server)
+      await this.eioServer.value.onWebsocket(server);
 
       return new Response(null, {status: 101, webSocket: client});
     })
