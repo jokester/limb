@@ -3,21 +3,68 @@ import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import type * as eio from 'engine.io';
-import {BaseServer as EioBaseServer} from 'engine.io/lib/server';
-import {WebSocket as EioWebSocket} from 'engine.io/lib/transports/websocket';
+import {
+  BaseServer as EioBaseServer,
+  ErrorCallback as EioErrorCallback,
+  PreparedIncomingMessage,
+} from 'engine.io/lib/server';
+import {
+  WebSocket as EioWebSocketBase,
+  DomWebSocket,
+} from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
 import {SioActor} from './SioActor';
 import {ActorMethodMap, buildSend} from './utils/send';
+import {createDebugLogger} from './utils/logger';
 
 declare const self: CF.ServiceWorkerGlobalScope;
+
+const logger = createDebugLogger('sio-worker:EngineActor');
 
 interface Methods extends ActorMethodMap {
   send(sid: string, msg: string | Buffer): void;
   close(sid: string, cause?: any): void;
 }
 
+function crateDummyRequest(
+  cfWebSocket: CF.WebSocket,
+  actor: EngineActor
+): PreparedIncomingMessage {
+  const wrapped: DomWebSocket = {
+    _socket: {
+      remoteAddress: 'FIXME: 127.0.0.1',
+    },
+    on(event: any, listener: any) {
+      cfWebSocket.addEventListener(event, listener);
+      return wrapped;
+    },
+    once(event: any, listener: any) {
+      cfWebSocket.addEventListener(event, listener, {once: true});
+      return wrapped;
+    },
+    send(data: string | Buffer, _opts?: unknown, _callback?: unknown) {
+      cfWebSocket.send(data);
+    },
+    close: cfWebSocket.close.bind(cfWebSocket),
+  };
+  return {
+    _query: {
+      // FIXME: find a way to reuse sid across WS connections. handshake() always create a new sid.
+      sid: '',
+      EIO: '4',
+    },
+    websocket: wrapped,
+  };
+}
+
+class EioWebSocket extends EioWebSocketBase {
+  $$constructor(req: any, websocket: CF.WebSocket, actor: EngineActor) {
+    // super({ ...req, websocket: createDomWebSocketMock(websocket, actor), });
+  }
+}
+
 class EioServer extends EioBaseServer {
-  constructor() {
+  constructor(private readonly actor: EngineActor) {
     super({
       transports: ['websocket'],
     });
@@ -38,29 +85,24 @@ class EioServer extends EioBaseServer {
    * - no middleware or verify yet
    * @param ws
    */
-  async onCfSocket(ws: CF.WebSocket): Promise<void> {
-    const fail = new Deferred<unknown>();
+  async onCfSocket(ws: CF.WebSocket): Promise<unknown> {
+    const handShaken = new Deferred<unknown>();
+
+    const onHandshakeError: EioErrorCallback = (errCode, errContext) =>
+      handShaken.reject(new Error(`${errContext?.message} : ${errCode}`));
 
     /**
      * inside this.handshake():
-     * 1. create (or reuse)
+     * 1. create eio.WebSocket transfer and eio.Socket wrapping it
      */
     const t: EioWebSocket = await this.handshake(
       'websocket',
-      {
-        query: {
-          // FIXME: find a way to reuse sid across WS connections. handshake() always create a new sid.
-          sid: '',
-          EIO: '4',
-        },
-        websocket: ws,
-      },
-      (errCode: string, errContext: unknown) => fail.reject(new Error(errCode))
+      crateDummyRequest(ws, this.actor),
+      onHandshakeError
     );
-    if (fail.resolved) {
-      await fail; // to throw
-    }
     // else: a Socket object should be emitted in `this.handshake()` call
+    handShaken.fulfill(t);
+    return handShaken;
   }
 }
 
@@ -80,7 +122,12 @@ export class EngineActor implements CF.DurableObject {
   ) {}
 
   readonly eioServer = lazy(() => {
-    const s = new EioServer();
+    const s = new EioServer(this);
+    // FIXME the 2 object exists but inspecting them will cause error
+    // like `webgpu needs the webgpu compatibility flag set`
+    // logger('globalThis', typeof globalThis === 'object' && globalThis);
+    // logger('self', typeof self === 'object' && self);
+
     s.on('connection', (socket: eio.Socket) => this.onEioSocket(socket));
     return s;
   });
@@ -146,15 +193,10 @@ export class EngineActor implements CF.DurableObject {
     ws: WebSocket,
     message: string | ArrayBuffer
   ): void | Promise<void> {
+    logger('webSockerMessage', ws, message);
     if (ws.readyState !== WebSocket.OPEN) {
       return;
     }
-    ws.send(
-      JSON.stringify({
-        ...JSON.parse(message.toString()),
-        serverTime: Date.now(),
-      })
-    );
   }
 
   webSocketError(ws: WebSocket, error: unknown): void | Promise<void> {
