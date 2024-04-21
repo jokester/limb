@@ -7,7 +7,7 @@ import {createDebugLogger} from './utils/logger';
 const debugLogger = createDebugLogger('sio-worker:SioActor');
 
 interface Methods extends ActorMethodMap {
-  onConnection(sid: string, connParent: CF.DurableObjectId): void;
+  onConnection(sid: string, connParent: CF.DurableObjectId): {message: string};
 }
 
 /**
@@ -16,10 +16,20 @@ interface Methods extends ActorMethodMap {
 export class SioActor implements CF.DurableObject {
   static readonly send = buildSend<Methods>();
 
-  server = lazy(() => new Hono());
+  readonly server = lazy(() =>
+    new Hono().post('/onConnection', async ctx => {
+      const [sid, connParent]: Parameters<Methods['onConnection']> =
+        await ctx.req.json();
 
-  async fetch(request: Request): Promise<Response> {
+      debugLogger('onConnection', sid, connParent);
+
+      return ctx.json({message: 'got sid'});
+    })
+  );
+
+  async fetch(request: CF.Request): Promise<CF.Response> {
     debugLogger('fetch', request);
-    return new Response('not found', {status: 404});
+    // @ts-expect-error
+    return this.server.value.fetch(request);
   }
 }

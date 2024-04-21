@@ -141,12 +141,11 @@ export class EngineActor implements CF.DurableObject {
         kind: this.env.sioActor,
         id: destId,
       },
-      {
-        method: 'onConnection',
-        params: [sid, this.state.id],
-      },
-      this.state.id
-    );
+      'onConnection',
+      [sid, this.state.id]
+    ).then(res => {
+      logger('onConnection res', res);
+    });
   }
 
   readonly honoApp = lazy(() =>
@@ -181,7 +180,7 @@ export class EngineActor implements CF.DurableObject {
     reason: string,
     wasClean: boolean
   ): void | Promise<void> {
-    console.log('websocketClose', {
+    logger('websocketClose', {
       ws,
       code,
       reason,
@@ -200,6 +199,6 @@ export class EngineActor implements CF.DurableObject {
   }
 
   webSocketError(ws: WebSocket, error: unknown): void | Promise<void> {
-    console.log('websocket error', error);
+    logger('websocket error', error);
   }
 }
