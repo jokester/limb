@@ -2,72 +2,78 @@ import type * as CF from '@cloudflare/workers-types';
 import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
-import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
 import type * as eio from 'engine.io';
-import {EventEmitter} from 'node:events';
 import {BaseServer as EioBaseServer} from 'engine.io';
 import {WebSocket as EioWebSocket} from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
+import {SioActor} from './SioActor';
+import {ActorMethodMap, buildSend} from './utils/send';
 
 declare const self: CF.ServiceWorkerGlobalScope;
-const {Response, fetch, addEventListener, WebSocketPair} = self;
 
-// @ts-ignore
-class FakeEngine
-  extends EventEmitter
-  implements InstanceType<typeof eio.BaseServer>
-{
-  constructor(readonly opts?: eio.ServerOptions) {
-    super();
-  }
+interface Methods extends ActorMethodMap {
+  send(sid: string, msg: string | Buffer): void;
+  close(sid: string, cause?: any): void;
 }
-
-export interface EngineActorMethods {}
-
-class DoWebSocket extends EioWebSocket {}
 
 class EioServer extends EioBaseServer {
   constructor() {
     super({
-      transports: ['do-ws'],
+      transports: ['websocket'],
     });
   }
   init() {}
 
   cleanup() {}
 
-  protected createTransport(transportName: any, req: any): any {
+  protected createTransport(transportName: string, req: any): EioWebSocket {
     if (transportName !== 'websocket') {
       throw new Error('should not be here');
     }
+    return new EioWebSocket(req);
   }
 
-  async onWebsocket(ws: CF.WebSocket): Promise<void> {
+  /**
+   * works like eio.Server#onWebSocket(req, socket, websocket) but
+   * - no middleware or verify yet
+   * @param ws
+   */
+  async onCfSocket(ws: CF.WebSocket): Promise<void> {
     const fail = new Deferred<unknown>();
 
+    /**
+     * inside this.handshake():
+     * 1. create (or reuse)
+     */
     const t: EioWebSocket = await this.handshake(
       'websocket',
       {
         query: {
+          // FIXME: find a way to reuse sid across WS connections. handshake() always create a new sid.
+          sid: '',
           EIO: '4',
-          websocket: ws,
         },
+        websocket: ws,
       },
-      (errCode, errContext) => fail.reject(new Error(errCode))
+      (errCode: string, errContext: unknown) => fail.reject(new Error(errCode))
     );
     if (fail.resolved) {
-      await fail;
+      await fail; // to throw
     }
+    // else: a Socket object should be emitted in `this.handshake()` call
   }
 }
 
 /**
- * WS handler based on engine.io
+ * WS based on engine.io
+ * - keeps transport : TS = eio.Socket + eio.WebSocket
+ * - emits id of new connected Socket (to who?)
+ * - emits messages
+ * - forwards message to Socket
  */
 export class EngineActor implements CF.DurableObject {
-  static call(state: CF.DurableObjectState, env: WorkerBindings) {
-    return new EngineActor(state, env);
-  }
+  static readonly send = buildSend<Methods>();
+
   constructor(
     private state: CF.DurableObjectState,
     private readonly env: WorkerBindings
@@ -75,11 +81,26 @@ export class EngineActor implements CF.DurableObject {
 
   readonly eioServer = lazy(() => {
     const s = new EioServer();
-    s.on('connection', socket => {
-      // TODO: propagate to sio.Server equivalent
-    });
+    s.on('connection', (socket: eio.Socket) => this.onEioSocket(socket));
     return s;
   });
+
+  private onEioSocket(socket: eio.Socket) {
+    // @ts-ignore
+    const sid: string = socket.id;
+    const destId = this.env.sioActor.idFromName('singleton');
+    SioActor.send(
+      {
+        kind: this.env.sioActor,
+        id: destId,
+      },
+      {
+        method: 'onConnection',
+        params: [sid, this.state.id],
+      },
+      this.state.id
+    );
+  }
 
   readonly honoApp = lazy(() =>
     new Hono<{Bindings: WorkerBindings}>().get('/*', async ctx => {
@@ -90,14 +111,15 @@ export class EngineActor implements CF.DurableObject {
         });
       }
 
-      const {0: client, 1: server} = new WebSocketPair();
+      const {0: clientSocket, 1: serverSocket} = new self.WebSocketPair();
+      // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
 
-      this.state.acceptWebSocket(server);
-      server.accept();
+      this.state.acceptWebSocket(serverSocket);
+      serverSocket.accept();
 
-      await this.eioServer.value.onWebsocket(server);
+      await this.eioServer.value.onCfSocket(serverSocket);
 
-      return new Response(null, {status: 101, webSocket: client});
+      return new self.Response(null, {status: 101, webSocket: clientSocket});
     })
   );
 
@@ -105,13 +127,6 @@ export class EngineActor implements CF.DurableObject {
     const {value: app} = this.honoApp;
     return app.fetch(req, this.env);
   }
-
-  readonly x = lazy(() => {
-    const server = new sio.Server({
-      transports: ['websocket'],
-    });
-    server.bind();
-  });
 
   webSocketClose(
     ws: WebSocket,
