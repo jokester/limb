@@ -4,3 +4,6 @@
 [submodule "deps/socket.io"]
 	path = socket.io
 	url = git@github.com:jokester/socket.io.git
+[submodule "mocks/rollup-plugin-node-polyfills"]
+	path = mocks/rollup-plugin-node-polyfills
+	url = https://github.com/jokester/rollup-plugin-node-polyfills

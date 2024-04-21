@@ -25,9 +25,11 @@
     "typescript": "^5.3.3",
     "wrangler": "^3.48.0"
   },
-  "overrides": {
-    "@types/node": "^18"
+  "resolutions": {
+    "@types/node": "^18",
+    "rollup-plugin-node-polyfills": "file:./mocks/rollup-plugin-node-polyfills/"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@4.1.1"
 }
