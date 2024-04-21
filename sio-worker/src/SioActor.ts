@@ -28,7 +28,7 @@ export class SioActor implements CF.DurableObject {
   );
 
   async fetch(request: CF.Request): Promise<CF.Response> {
-    debugLogger('fetch', request);
+    // debugLogger('fetch', request);
     // @ts-expect-error
     return this.server.value.fetch(request);
   }

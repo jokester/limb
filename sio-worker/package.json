@@ -13,9 +13,9 @@
   "dependencies": {
     "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
-    "engine.io": "file:../engine.io",
+    "engine.io": "*",
     "hono": "^4.2.2",
-    "socket.io": "file:../socket.io"
+    "socket.io": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240405.0",

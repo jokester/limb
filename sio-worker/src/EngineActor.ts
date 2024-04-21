@@ -2,24 +2,26 @@ import type * as CF from '@cloudflare/workers-types';
 import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
-import type * as eio from 'engine.io';
+import type * as eio from 'engine.io/lib/engine.io';
 import {
   BaseServer as EioBaseServer,
-  ErrorCallback as EioErrorCallback,
-  PreparedIncomingMessage,
+  type ErrorCallback as EioErrorCallback,
+  type PreparedIncomingMessage,
 } from 'engine.io/lib/server';
 import {
   WebSocket as EioWebSocketBase,
-  DomWebSocket,
+  type WsWebSocket,
 } from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
 import {SioActor} from './SioActor';
-import {ActorMethodMap, buildSend} from './utils/send';
+import {type ActorMethodMap, buildSend} from './utils/send';
 import {createDebugLogger} from './utils/logger';
+import type {IncomingMessage} from 'node:http';
+import {EventEmitter} from 'node:events';
 
 declare const self: CF.ServiceWorkerGlobalScope;
 
-const logger = createDebugLogger('sio-worker:EngineActor');
+const debugLogger = createDebugLogger('sio-worker:EngineActor');
 
 interface Methods extends ActorMethodMap {
   send(sid: string, msg: string | Buffer): void;
@@ -30,34 +32,43 @@ function crateDummyRequest(
   cfWebSocket: CF.WebSocket,
   actor: EngineActor
 ): PreparedIncomingMessage {
-  const wrapped: DomWebSocket = {
+  const fake: WsWebSocket = new EventEmitter() as WsWebSocket;
+  Object.assign(fake, {
     _socket: {
       remoteAddress: 'FIXME: 127.0.0.1',
     },
-    on(event: any, listener: any) {
-      cfWebSocket.addEventListener(event, listener);
-      return wrapped;
-    },
-    once(event: any, listener: any) {
-      cfWebSocket.addEventListener(event, listener, {once: true});
-      return wrapped;
-    },
-    send(data: string | Buffer, _opts?: unknown, _callback?: unknown) {
-      cfWebSocket.send(data);
+    send(
+      data: string | Buffer,
+      _opts?: unknown,
+      _callback?: (error?: any) => void
+    ) {
+      try {
+        cfWebSocket.send(data);
+        debugLogger('fakeWsWebSocket.send', data);
+        _callback?.();
+      } catch (e: any) {
+        debugLogger('fakeWsWebSocket.send error', data, e);
+        _callback?.(e);
+      }
     },
     close: cfWebSocket.close.bind(cfWebSocket),
-  };
+  });
+  // @ts-expect-error
   return {
     _query: {
       // FIXME: find a way to reuse sid across WS connections. handshake() always create a new sid.
       sid: '',
       EIO: '4',
     },
-    websocket: wrapped,
+    websocket: fake,
   };
 }
 
 class EioWebSocket extends EioWebSocketBase {
+  get _socket(): WsWebSocket {
+    // @ts-expect-error
+    return this.socket;
+  }
   $$constructor(req: any, websocket: CF.WebSocket, actor: EngineActor) {
     // super({ ...req, websocket: createDomWebSocketMock(websocket, actor), });
   }
@@ -73,6 +84,25 @@ class EioServer extends EioBaseServer {
 
   cleanup() {}
 
+  private _sidMap = new WeakMap<object, string>();
+
+  async generateId(req: IncomingMessage, save = false): Promise<string> {
+    // logger('generateId', req, save);
+    if (save) {
+      // fills _sidMap
+      const generated = await super.generateId(req as IncomingMessage);
+      this._sidMap.set(req, generated);
+      return generated;
+    } else {
+      // when called by base class: consume _sidMap
+      const registered = this._sidMap.get(req);
+      if (!registered) {
+        throw new Error('should not be here');
+      }
+      return registered;
+    }
+  }
+
   protected createTransport(transportName: string, req: any): EioWebSocket {
     if (transportName !== 'websocket') {
       throw new Error('should not be here');
@@ -80,12 +110,33 @@ class EioServer extends EioBaseServer {
     return new EioWebSocket(req);
   }
 
+  onCfSocketMessage(sid: string, msg: string | Buffer) {
+    const socket = this.clients[sid];
+    if (!socket) {
+      debugLogger('WARNING onCfSocketMessage(): no socket found for sid', sid);
+      return;
+    }
+    const msgStr = typeof msg === 'string' ? msg : msg.toString();
+    (socket.transport as EioWebSocket)._socket.emit('message', msgStr);
+  }
+
   /**
    * works like eio.Server#onWebSocket(req, socket, websocket) but
    * - no middleware or verify yet
-   * @param ws
+   * @param sid
+   * @param req
    */
-  async onCfSocket(ws: CF.WebSocket): Promise<unknown> {
+  async onCfSocket(
+    sid: string,
+    req: ReturnType<typeof crateDummyRequest>
+  ): Promise<unknown> {
+    const prev = this.clients[sid];
+    if (prev) {
+      // TODO is this correct?
+      debugLogger('WARNING eio.Socket existed with the same sid', sid, prev);
+      throw new Error('eio.Socket existed with the same sid');
+    }
+
     const handShaken = new Deferred<unknown>();
 
     const onHandshakeError: EioErrorCallback = (errCode, errContext) =>
@@ -94,15 +145,17 @@ class EioServer extends EioBaseServer {
     /**
      * inside this.handshake():
      * 1. create eio.WebSocket transfer and eio.Socket wrapping it
+     * 2. assign this.clients[sid]
      */
     const t: EioWebSocket = await this.handshake(
       'websocket',
-      crateDummyRequest(ws, this.actor),
+      req,
       onHandshakeError
     );
     // else: a Socket object should be emitted in `this.handshake()` call
     handShaken.fulfill(t);
-    return handShaken;
+    await handShaken;
+    return t;
   }
 }
 
@@ -144,12 +197,12 @@ export class EngineActor implements CF.DurableObject {
       'onConnection',
       [sid, this.state.id]
     ).then(res => {
-      logger('onConnection res', res);
+      debugLogger('onConnection res', res);
     });
   }
 
   readonly honoApp = lazy(() =>
-    new Hono<{Bindings: WorkerBindings}>().get('/*', async ctx => {
+    new Hono().get('/socket.io/*', async ctx => {
       if (ctx.req.header('Upgrade') !== 'websocket') {
         return new Response(null, {
           status: 426,
@@ -157,13 +210,18 @@ export class EngineActor implements CF.DurableObject {
         });
       }
 
+      debugLogger('new ws connection', ctx.req.url);
       const {0: clientSocket, 1: serverSocket} = new self.WebSocketPair();
       // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
 
-      this.state.acceptWebSocket(serverSocket);
+      const dummyReq = crateDummyRequest(serverSocket, this);
+      const sid = await this.eioServer.value.generateId(dummyReq, true);
+      const tags = [`sid:${sid}`];
+      this.state.acceptWebSocket(serverSocket, tags);
       // serverSocket.accept();
 
-      await this.eioServer.value.onCfSocket(serverSocket);
+      await this.eioServer.value.onCfSocket(sid, dummyReq);
+      // serverSocket.send('wtf');
 
       return new self.Response(null, {status: 101, webSocket: clientSocket});
     })
@@ -175,12 +233,12 @@ export class EngineActor implements CF.DurableObject {
   }
 
   webSocketClose(
-    ws: WebSocket,
+    ws: CF.WebSocket,
     code: number,
     reason: string,
     wasClean: boolean
   ): void | Promise<void> {
-    logger('websocketClose', {
+    debugLogger('websocketClose', {
       ws,
       code,
       reason,
@@ -189,16 +247,25 @@ export class EngineActor implements CF.DurableObject {
   }
 
   webSocketMessage(
-    ws: WebSocket,
+    ws: CF.WebSocket,
     message: string | ArrayBuffer
   ): void | Promise<void> {
-    logger('webSockerMessage', ws, message);
-    if (ws.readyState !== WebSocket.OPEN) {
+    debugLogger('webSockerMessage', ws, message);
+    const tags = this.state.getTags(ws);
+    const sid = tags.find(tag => tag.startsWith('sid:'))?.slice('sid:'.length);
+    if (!sid) {
+      debugLogger('WARNING no sid found for ws', ws);
       return;
     }
+    this.eioServer.value.onCfSocketMessage(
+      sid,
+      typeof message === 'string'
+        ? message
+        : Buffer.from(new Uint8Array(message))
+    );
   }
 
-  webSocketError(ws: WebSocket, error: unknown): void | Promise<void> {
-    logger('websocket error', error);
+  webSocketError(ws: CF.WebSocket, error: unknown): void | Promise<void> {
+    debugLogger('websocket error', error);
   }
 }
