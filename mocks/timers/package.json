@@ -1,5 +1,0 @@
-{
-  "name": "mocked-timers",
-  "description": "stolen from https://github.com/ionic-team/rollup-plugin-node-polyfills/blob/master/polyfills/timers.js , adapted for CF worker",
-  "main": "timers.js"
-}

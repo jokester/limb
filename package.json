@@ -11,6 +11,9 @@
   "workspaces": [
     "./server",
     "./sio-worker",
+    "./engine.io",
+    "./socket.io",
+    "./mocks/rollup-plugin-node-polyfills",
     "./demo"
   ],
   "engines": {
@@ -27,7 +30,9 @@
   },
   "resolutions": {
     "@types/node": "^18",
-    "rollup-plugin-node-polyfills": "file:./mocks/rollup-plugin-node-polyfills/"
+    "engine.io": "workspace:*",
+    "socket.io": "workspace:*",
+    "rollup-plugin-node-polyfills": "workspace:*"
   },
   "author": "",
   "license": "MIT",
