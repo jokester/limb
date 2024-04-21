@@ -22,7 +22,9 @@ export function HammerTouchDemo({
   useEffect(() => {
     const defaultOrigin = getSocketServerOrigin();
 
-    const socket = io(`${defaultOrigin}/v1/${namespace}`);
+    const socket = io(`${defaultOrigin}/v1/${namespace}`, {
+      transports: ['websocket'],
+    });
     const manager = createHammerManager(touchableRef.current!);
 
     const localInput$ = createLocalHammerInput$(
