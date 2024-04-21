@@ -8,7 +8,8 @@ declare const self: CF.ServiceWorkerGlobalScope;
 const {Response, fetch, addEventListener, WebSocketPair} = self;
 
 /**
- * A basic WS handler
+ * A basic WS + Hibernation handler
+ * based on https://developers.cloudflare.com/durable-objects/examples/websocket-hibernation-server/
  */
 export class WsActor implements CF.DurableObject {
   constructor(
@@ -27,8 +28,10 @@ export class WsActor implements CF.DurableObject {
 
       const {0: client, 1: server} = new WebSocketPair();
 
+      // accepts WS connection (max 32k conn per DO instance)
       this.state.acceptWebSocket(server);
-      server.accept();
+      // DO NOT call this, this is incompatible with WebSocket Hibernation
+      // server.accept();
 
       setTimeout(async () => {
         for (let i = 0; i < 3; i++) {

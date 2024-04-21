@@ -3,7 +3,7 @@ import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import type * as eio from 'engine.io';
-import {BaseServer as EioBaseServer} from 'engine.io';
+import {BaseServer as EioBaseServer} from 'engine.io/lib/server';
 import {WebSocket as EioWebSocket} from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
 import {SioActor} from './SioActor';
@@ -115,7 +115,7 @@ export class EngineActor implements CF.DurableObject {
       // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
 
       this.state.acceptWebSocket(serverSocket);
-      serverSocket.accept();
+      // serverSocket.accept();
 
       await this.eioServer.value.onCfSocket(serverSocket);
 
