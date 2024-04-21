@@ -3544,13 +3544,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@file:../mocks/debug::locator=engine.io%40workspace%3Aengine.io":
-  version: 0.0.1
-  resolution: "debug@file:../mocks/debug#../mocks/debug::hash=93dfbf&locator=engine.io%40workspace%3Aengine.io"
-  checksum: 10c0/0f6e638371e6265e511a53e38b5220acc405f739d1eec4e26899a487bfea6a4fb412e0e2fd39da6124ef3d24c28acc70c6d2e26ce2618e3d40867e7d26bc91ff
-  languageName: node
-  linkType: hard
-
 "debug@npm:2.6.9":
   version: 2.6.9
   resolution: "debug@npm:2.6.9"
@@ -3610,6 +3603,12 @@ __metadata:
   checksum: 10c0/5bff34a352d7b2eaa31886eeaf2ee534b5461ec0548315b2f9f80bd1d2533cab7df1fa52e130ce27bc31c3945fbffb0fc72baacdceb274b95ce853db89254ea4
   languageName: node
   linkType: hard
+
+"debug@workspace:*, debug@workspace:mocks/debug":
+  version: 0.0.0-use.local
+  resolution: "debug@workspace:mocks/debug"
+  languageName: unknown
+  linkType: soft
 
 "decamelize-keys@npm:^1.0.0, decamelize-keys@npm:^1.1.0":
   version: 1.1.1
@@ -4111,7 +4110,7 @@ __metadata:
     base64id: "npm:2.0.0"
     cookie: "npm:~0.4.1"
     cors: "npm:~2.8.5"
-    debug: "file:../mocks/debug"
+    debug: "npm:~4.3.1"
     eiows: "npm:^4.1.2"
     engine.io-client: "npm:6.5.0"
     engine.io-client-v3: "npm:engine.io-client@3.5.2"
