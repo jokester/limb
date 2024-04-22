@@ -110,16 +110,6 @@ class EioServer extends EioBaseServer {
     return new EioWebSocket(req);
   }
 
-  onCfSocketMessage(sid: string, msg: string | Buffer) {
-    const socket = this.clients[sid];
-    if (!socket) {
-      debugLogger('WARNING onCfSocketMessage(): no socket found for sid', sid);
-      return;
-    }
-    const msgStr = typeof msg === 'string' ? msg : msg.toString();
-    (socket.transport as EioWebSocket)._socket.emit('message', msgStr);
-  }
-
   /**
    * works like eio.Server#onWebSocket(req, socket, websocket) but
    * - no middleware or verify yet
@@ -156,6 +146,34 @@ class EioServer extends EioBaseServer {
     handShaken.fulfill(t);
     await handShaken;
     return t;
+  }
+
+  onCfSocketMessage(sid: string, msg: string | Buffer) {
+    const socket = this.clients[sid];
+    if (!socket) {
+      debugLogger('WARNING onCfSocketMessage(): no socket found for sid', sid);
+      return;
+    }
+    const msgStr = typeof msg === 'string' ? msg : msg.toString();
+    (socket.transport as EioWebSocket)._socket.emit('message', msgStr);
+  }
+
+  onCfSocketClose(sid: string): void {
+    const socket = this.clients[sid];
+    if (!socket) {
+      debugLogger('WARNING onCfSocketClose(): no socket found for sid', sid);
+      return;
+    }
+    (socket.transport as EioWebSocket)._socket.emit('close');
+  }
+
+  onCfSocketError(sid: string, msg: string, desc?: string): void {
+    const socket = this.clients[sid];
+    if (!socket) {
+      debugLogger('WARNING onCfSocketError(): no socket found for sid', sid);
+      return;
+    }
+    (socket.transport as EioWebSocket)._socket.emit('error', new Error(msg));
   }
 }
 
@@ -244,6 +262,17 @@ export class EngineActor implements CF.DurableObject {
       reason,
       wasClean,
     });
+    const sid = this.findSid(ws)
+    if (!sid) {
+      debugLogger('WARNING no sid found for ws', ws);
+      return;
+    }
+    this.eioServer.value.onCfSocketClose(sid)
+  }
+
+  private findSid(ws: CF.WebSocket): string | undefined {
+    const tags = this.state.getTags(ws);
+    return tags.find(tag => tag.startsWith('sid:'))?.slice('sid:'.length);
   }
 
   webSocketMessage(
@@ -251,8 +280,7 @@ export class EngineActor implements CF.DurableObject {
     message: string | ArrayBuffer
   ): void | Promise<void> {
     debugLogger('webSockerMessage', ws, message);
-    const tags = this.state.getTags(ws);
-    const sid = tags.find(tag => tag.startsWith('sid:'))?.slice('sid:'.length);
+    const sid = this.findSid(ws)
     if (!sid) {
       debugLogger('WARNING no sid found for ws', ws);
       return;
@@ -267,5 +295,11 @@ export class EngineActor implements CF.DurableObject {
 
   webSocketError(ws: CF.WebSocket, error: unknown): void | Promise<void> {
     debugLogger('websocket error', error);
+    const sid = this.findSid(ws)
+    if (!sid) {
+      debugLogger('WARNING no sid found for ws', ws);
+      return;
+    }
+    this.eioServer.value.onCfSocketError(sid, 'WebSocket Error', String(error))
   }
 }

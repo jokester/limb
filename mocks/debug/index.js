@@ -5,6 +5,6 @@ module.exports =
   name =>
   (...args) => {
     if (enabledPrefix.some(f => f(name))) {
-      console.debug('DEBUG', name, ...args);
+      console.debug(new Date(), 'DEBUG', name, ...args);
     }
   };
