@@ -207,6 +207,13 @@ export class EngineActor implements CF.DurableObject {
     // @ts-ignore
     const sid: string = socket.id;
     const destId = this.env.sioActor.idFromName('singleton');
+
+    socket.on('message', msg => SioActor.send({
+      kind: this.env.sioActor,
+      id: destId,
+    }, 'onMessage', [sid, this.state.id, msg]));
+    // XXX: should we handle close/error event?
+
     SioActor.send(
       {
         kind: this.env.sioActor,
