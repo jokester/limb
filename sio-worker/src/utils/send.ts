@@ -2,6 +2,7 @@ import type * as CF from '@cloudflare/workers-types';
 import {lazyThenable} from "@jokester/ts-commonutil/lib/concurrency/lazy-thenable";
 import {JSONValue} from "hono/dist/types/utils/types";
 
+/** FIXME: maybe try superjson to support more primitive-like values? */
 export type ActorMethodMap = Record<string, (...args: JSONValue[]) => unknown>;
 
 const dummyUrlPrefix = 'https://dummy-origin.internal/';

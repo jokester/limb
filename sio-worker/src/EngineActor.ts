@@ -173,6 +173,7 @@ class EioServer extends EioBaseServer {
       debugLogger('WARNING onCfSocketError(): no socket found for sid', sid);
       return;
     }
+    // this should escalate EioWebSocket > EioSocket
     (socket.transport as EioWebSocket)._socket.emit('error', new Error(msg));
   }
 }
@@ -203,18 +204,12 @@ export class EngineActor implements CF.DurableObject {
     return s;
   });
 
-  private onEioSocket(socket: eio.Socket) {
+  private async onEioSocket(socket: eio.Socket) {
     // @ts-ignore
     const sid: string = socket.id;
     const destId = this.env.sioActor.idFromName('singleton');
 
-    socket.on('message', msg => SioActor.send({
-      kind: this.env.sioActor,
-      id: destId,
-    }, 'onMessage', [sid, this.state.id, msg]));
-    // XXX: should we handle close/error event?
-
-    SioActor.send(
+    await SioActor.send(
       {
         kind: this.env.sioActor,
         id: destId,
@@ -224,6 +219,39 @@ export class EngineActor implements CF.DurableObject {
     ).then(res => {
       debugLogger('onConnection res', res);
     });
+
+    // Because socket.io code runs in different DO, we need to forward events
+    socket
+      .on('message', msg =>
+        SioActor.send(
+          {
+            kind: this.env.sioActor,
+            id: destId,
+          },
+          'onMessage',
+          [sid, this.state.id, msg]
+        )
+      )
+      .on('close', msg =>
+        SioActor.send(
+          {
+            kind: this.env.sioActor,
+            id: destId,
+          },
+          'onConnectionClose',
+          [sid, this.state.id]
+        )
+      )
+      .on('error', msg =>
+        SioActor.send(
+          {
+            kind: this.env.sioActor,
+            id: destId,
+          },
+          'onConnectionError',
+          [sid, this.state.id]
+        )
+      );
   }
 
   readonly honoApp = lazy(() =>
@@ -269,12 +297,12 @@ export class EngineActor implements CF.DurableObject {
       reason,
       wasClean,
     });
-    const sid = this.findSid(ws)
+    const sid = this.findSid(ws);
     if (!sid) {
       debugLogger('WARNING no sid found for ws', ws);
       return;
     }
-    this.eioServer.value.onCfSocketClose(sid)
+    this.eioServer.value.onCfSocketClose(sid);
   }
 
   private findSid(ws: CF.WebSocket): string | undefined {
@@ -287,7 +315,7 @@ export class EngineActor implements CF.DurableObject {
     message: string | ArrayBuffer
   ): void | Promise<void> {
     debugLogger('webSockerMessage', ws, message);
-    const sid = this.findSid(ws)
+    const sid = this.findSid(ws);
     if (!sid) {
       debugLogger('WARNING no sid found for ws', ws);
       return;
@@ -302,11 +330,11 @@ export class EngineActor implements CF.DurableObject {
 
   webSocketError(ws: CF.WebSocket, error: unknown): void | Promise<void> {
     debugLogger('websocket error', error);
-    const sid = this.findSid(ws)
+    const sid = this.findSid(ws);
     if (!sid) {
       debugLogger('WARNING no sid found for ws', ws);
       return;
     }
-    this.eioServer.value.onCfSocketError(sid, 'WebSocket Error', String(error))
+    this.eioServer.value.onCfSocketError(sid, 'WebSocket Error', String(error));
   }
 }
