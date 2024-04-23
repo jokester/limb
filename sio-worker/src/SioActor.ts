@@ -10,8 +10,11 @@ const debugLogger = createDebugLogger('sio-worker:SioActor');
 
 interface Methods extends ActorMethodMap {
   onConnection(sid: string, sender: CF.DurableObjectId): unknown;
+
   onConnectionClose(sid: string, sender: CF.DurableObjectId): unknown;
+
   onConnectionError(sid: string, sender: CF.DurableObjectId): unknown;
+
   onMessage(sid: string, sender: CF.DurableObjectId, data: string | Buffer): void;
 }
 
@@ -34,6 +37,16 @@ export class SioActor implements CF.DurableObject {
         await ctx.req.json();
 
       debugLogger('onMessage', sid, sender, data);
+    }).post('/onConnectionClose', async ctx => {
+      const [sid, sender]: Parameters<Methods['onConnectionClose']> =
+        await ctx.req.json();
+
+      debugLogger('onConnectionClose', sid, sender);
+    }).post('/onConnectionError', async ctx => {
+      const [sid, sender]: Parameters<Methods['onConnectionError']> =
+        await ctx.req.json();
+
+      debugLogger('onConnectionError', sid, sender);
     })
   );
 
