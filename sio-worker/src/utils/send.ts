@@ -1,8 +1,15 @@
 import type * as CF from '@cloudflare/workers-types';
+import {lazyThenable} from "@jokester/ts-commonutil/lib/concurrency/lazy-thenable";
+import {JSONValue} from "hono/dist/types/utils/types";
 
-export type ActorMethodMap = Record<string, (...args: any[]) => unknown>;
+export type ActorMethodMap = Record<string, (...args: JSONValue[]) => unknown>;
 
 const dummyUrlPrefix = 'https://dummy-origin.internal/';
+
+export interface WrappedResponse<T> {
+  res: CF.Response
+  json() : PromiseLike<T>
+}
 
 export async function send<
   Methods extends ActorMethodMap,
@@ -14,7 +21,7 @@ export async function send<
   },
   method: M,
   params: Parameters<Methods[M]>
-): Promise<unknown> {
+): Promise<WrappedResponse<Awaited<ReturnType<Methods[M]>>>> {
   const res = await dest.kind
     .get(dest.id)
     .fetch(`${dummyUrlPrefix}${String(method)}`, {
@@ -22,7 +29,11 @@ export async function send<
       // FIXME: content-type?
       body: JSON.stringify(params),
     });
-  return res.json();
+  const resAsJson = lazyThenable<any>(() => res.json())
+  return {
+    res,
+    json: () => resAsJson,
+  }
 }
 
 export function buildSend<Methods extends ActorMethodMap>() {
@@ -33,5 +44,5 @@ export function buildSend<Methods extends ActorMethodMap>() {
     },
     method: M,
     params: Parameters<Methods[M]>
-  ) => Promise<Awaited<ReturnType<Methods[M]>>>;
+  ) => Promise<WrappedResponse<Awaited<ReturnType<Methods[M]>>>>;
 }
