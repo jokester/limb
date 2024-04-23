@@ -3,8 +3,8 @@ import {ActorMethodMap, buildSend} from './utils/send';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {createDebugLogger} from './utils/logger';
-// TODO patch export map
-// import {Server as BaseSioServer } from 'socket.io/lib/index'
+import {Socket as EioSocket} from 'engine.io/lib/socket'
+import {Server as BaseSioServer } from 'socket.io/lib/index'
 
 const debugLogger = createDebugLogger('sio-worker:SioActor');
 
@@ -16,6 +16,18 @@ interface Methods extends ActorMethodMap {
   onConnectionError(sid: string, sender: CF.DurableObjectId): unknown;
 
   onMessage(sid: string, sender: CF.DurableObjectId, data: string | Buffer): void;
+}
+
+class MockSocket implements InstanceType<typeof EioSocket> {
+  // TODO
+  // event emitter + writable interface for this DO
+}
+
+class SioServer extends BaseSioServer {
+  constructor() {
+    // TODO
+    super({});
+  }
 }
 
 /**

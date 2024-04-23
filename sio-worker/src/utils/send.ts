@@ -3,7 +3,7 @@ import {lazyThenable} from "@jokester/ts-commonutil/lib/concurrency/lazy-thenabl
 import {JSONValue} from "hono/dist/types/utils/types";
 
 /** FIXME: maybe try superjson to support more primitive-like values? */
-export type ActorMethodMap = Record<string, (...args: JSONValue[]) => unknown>;
+export type ActorMethodMap = Record<string, (...args: (JSONValue| CF.DurableObjectId)[]) => unknown>;
 
 const dummyUrlPrefix = 'https://dummy-origin.internal/';
 
