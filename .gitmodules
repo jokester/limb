@@ -1,16 +1,12 @@
 [submodule "deps/engine.io"]
 	path = deps/engine.io
 	url = https://github.com/jokester/engine.io
-	pushurl = git@github.com:jokester/engine.io.git
 [submodule "deps/socket.io"]
 	path = deps/socket.io
 	url = https://github.com/jokester/socket.io
-	pushurl = git@github.com:jokester/socket.io.git
-[submodule "mocks/rollup-plugin-node-polyfills"]
+[submodule "deps/rollup-plugin-node-polyfills"]
 	path = deps/rollup-plugin-node-polyfills
 	url = https://github.com/jokester/rollup-plugin-node-polyfills
-	pushurl = git@github.com:jokester/rollup-plugin-node-polyfills.git
 [submodule "deps/socket.io-adapter"]
 	path = deps/socket.io-adapter
 	url = https://github.com/jokester/socket.io-adapter
-	pushurl = git@github.com:jokester/socket.io-adapter.git
