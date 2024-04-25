@@ -10,12 +10,12 @@
   },
   "workspaces": [
     "./server",
+    "./demo",
     "./sio-worker",
-    "./engine.io",
-    "./socket.io",
-    "./mocks/debug",
-    "./mocks/rollup-plugin-node-polyfills",
-    "./demo"
+    "./deps/engine.io",
+    "./deps/socket.io",
+    "./deps/rollup-plugin-node-polyfills",
+    "./mocks/debug"
   ],
   "engines": {
     "node": "^18 || ^20",

@@ -4096,9 +4096,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"engine.io@workspace:*, engine.io@workspace:engine.io":
+"engine.io@workspace:*, engine.io@workspace:deps/engine.io":
   version: 0.0.0-use.local
-  resolution: "engine.io@workspace:engine.io"
+  resolution: "engine.io@workspace:deps/engine.io"
   dependencies:
     "@fails-components/webtransport": "npm:^0.1.7"
     "@types/cookie": "npm:^0.4.1"
@@ -9893,9 +9893,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-node-polyfills@workspace:*, rollup-plugin-node-polyfills@workspace:mocks/rollup-plugin-node-polyfills":
+"rollup-plugin-node-polyfills@workspace:*, rollup-plugin-node-polyfills@workspace:deps/rollup-plugin-node-polyfills":
   version: 0.0.0-use.local
-  resolution: "rollup-plugin-node-polyfills@workspace:mocks/rollup-plugin-node-polyfills"
+  resolution: "rollup-plugin-node-polyfills@workspace:deps/rollup-plugin-node-polyfills"
   dependencies:
     browserify-fs: "npm:^1.0.0"
     buffer-es6: "npm:^4.9.2"
@@ -10487,9 +10487,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"socket.io@workspace:*, socket.io@workspace:socket.io":
+"socket.io@workspace:*, socket.io@workspace:deps/socket.io":
   version: 0.0.0-use.local
-  resolution: "socket.io@workspace:socket.io"
+  resolution: "socket.io@workspace:deps/socket.io"
   dependencies:
     "@types/mocha": "npm:^9.0.0"
     accepts: "npm:~1.3.4"
