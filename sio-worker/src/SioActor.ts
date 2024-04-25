@@ -3,19 +3,30 @@ import {ActorMethodMap, buildSend} from './utils/send';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {createDebugLogger} from './utils/logger';
-import {Socket as EioSocket} from 'engine.io/lib/socket'
-import {Server as BaseSioServer } from 'socket.io/lib/index'
+import type {Socket as EioSocket} from 'engine.io/lib/socket';
+import {Server as BaseSioServer} from 'socket.io/lib/index';
+import {WorkerBindings} from './workerApp';
 
 const debugLogger = createDebugLogger('sio-worker:SioActor');
 
+interface SocketAddress {
+  sid: string
+  doName: string
+}
+
 interface Methods extends ActorMethodMap {
-  onConnection(sid: string, sender: CF.DurableObjectId): unknown;
+  onConnection(socketAddr: SocketAddress): unknown;
 
-  onConnectionClose(sid: string, sender: CF.DurableObjectId): unknown;
+  onConnectionClose( socketAddr: SocketAddress ): unknown;
 
-  onConnectionError(sid: string, sender: CF.DurableObjectId): unknown;
+  onConnectionError(socketAddr: SocketAddress): unknown;
 
-  onMessage(sid: string, sender: CF.DurableObjectId, data: string | Buffer): void;
+  onMessage(
+    socketAddr: SocketAddress,
+    data: {
+      message: string
+    }
+  ): void;
 }
 
 class MockSocket implements InstanceType<typeof EioSocket> {
@@ -23,11 +34,25 @@ class MockSocket implements InstanceType<typeof EioSocket> {
   // event emitter + writable interface for this DO
 }
 
-class SioServer extends BaseSioServer {
-  constructor() {
-    // TODO
-    super({});
+class SioServer extends BaseSioServer implements Methods {
+
+  constructor( private state: CF.DurableObjectState,
+
+               private readonly env: WorkerBindings
+               ) {
+    super();
   }
+  // FIXME caller should save/restore internal state
+  onConnection(socketAddr: SocketAddress): unknown {
+    const f = this.env.engineActor.idFromName(socketAddr.doName);
+
+  }
+
+  onMessage(socketAddr: SocketAddress, data) {
+  }
+  onConnectionClose(socketAddr: SocketAddress): unknown {}
+
+  onConnectionError(socketAddr: SocketAddress): unknown {}
 }
 
 /**
@@ -36,30 +61,46 @@ class SioServer extends BaseSioServer {
 export class SioActor implements CF.DurableObject {
   static readonly send = buildSend<Methods>();
 
+  constructor(
+    private readonly  state: CF.DurableObjectState,
+    private readonly env: WorkerBindings
+  ) {}
+
+  sioServer = lazy(() => {
+    const s = new SioServer(this.state, this.env);
+    return s;
+  });
+
   readonly server = lazy(() =>
-    new Hono().post('/onConnection', async ctx => {
-      const [sid, sender]: Parameters<Methods['onConnection']> =
-        await ctx.req.json();
+    new Hono()
+      .post('/onConnection', async ctx => {
+        const [socketAddr]: Parameters<Methods['onConnection']> =
+          await ctx.req.json();
 
-      debugLogger('onConnection', sid, sender);
+        debugLogger('onConnection', socketAddr);
 
-      return ctx.json({message: 'got sid'});
-    }).post('/onMessage', async ctx => {
-      const [sid, sender, data]: Parameters<Methods['onMessage']> =
-        await ctx.req.json();
+        await this.sioServer.value.onConnection(socketAddr);
 
-      debugLogger('onMessage', sid, sender, data);
-    }).post('/onConnectionClose', async ctx => {
-      const [sid, sender]: Parameters<Methods['onConnectionClose']> =
-        await ctx.req.json();
+        return ctx.json({message: 'got sid'});
+      })
+      .post('/onMessage', async ctx => {
+        const [socketAddr, data]: Parameters<Methods['onMessage']> =
+          await ctx.req.json();
 
-      debugLogger('onConnectionClose', sid, sender);
-    }).post('/onConnectionError', async ctx => {
-      const [sid, sender]: Parameters<Methods['onConnectionError']> =
-        await ctx.req.json();
+        debugLogger('onMessage', socketAddr, data);
+      })
+      .post('/onConnectionClose', async ctx => {
+        const [socketAddr]: Parameters<Methods['onConnectionClose']> =
+          await ctx.req.json();
 
-      debugLogger('onConnectionError', sid, sender);
-    })
+        debugLogger('onConnectionClose', socketAddr);
+      })
+      .post('/onConnectionError', async ctx => {
+        const [socketAddr]: Parameters<Methods['onConnectionError']> =
+          await ctx.req.json();
+
+        debugLogger('onConnectionError', socketAddr);
+      })
   );
 
   async fetch(request: CF.Request): Promise<CF.Response> {
