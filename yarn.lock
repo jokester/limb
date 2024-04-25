@@ -1507,6 +1507,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/expect.js@npm:^0.3.32":
+  version: 0.3.32
+  resolution: "@types/expect.js@npm:0.3.32"
+  checksum: 10c0/660f64e5743e7d33e60c7f8e4a03ec386858201a1fa424f462d0d5cd72aa06910f9cf2e62f0beab70918bcd1175ed51d8cf01aebc11e811b93a70ef4191be31b
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:^7.1.1":
   version: 7.2.0
   resolution: "@types/glob@npm:7.2.0"
@@ -1551,6 +1558,13 @@ __metadata:
   version: 1.2.5
   resolution: "@types/minimist@npm:1.2.5"
   checksum: 10c0/3f791258d8e99a1d7d0ca2bda1ca6ea5a94e5e7b8fc6cde84dd79b0552da6fb68ade750f0e17718f6587783c24254bbca0357648dd59dc3812c150305cabdc46
+  languageName: node
+  linkType: hard
+
+"@types/mocha@npm:^10.0.1":
+  version: 10.0.6
+  resolution: "@types/mocha@npm:10.0.6"
+  checksum: 10c0/4526c9e88388f9e1004c6d3937c5488a39908810f26b927173c58d52b43057f3895627dc06538e96706e08b88158885f869ec6311f6b58fd72bdef715f26d6c3
   languageName: node
   linkType: hard
 
@@ -7870,7 +7884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mocha@npm:^10.0.0":
+"mocha@npm:^10.0.0, mocha@npm:^10.2.0":
   version: 10.4.0
   resolution: "mocha@npm:10.4.0"
   dependencies:
@@ -9193,7 +9207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.3.2, prettier@npm:^2.8.2":
+"prettier@npm:^2.3.2, prettier@npm:^2.8.1, prettier@npm:^2.8.2":
   version: 2.8.8
   resolution: "prettier@npm:2.8.8"
   bin:
@@ -10425,15 +10439,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"socket.io-adapter@npm:~2.5.2":
-  version: 2.5.4
-  resolution: "socket.io-adapter@npm:2.5.4"
+"socket.io-adapter@workspace:*, socket.io-adapter@workspace:deps/socket.io-adapter":
+  version: 0.0.0-use.local
+  resolution: "socket.io-adapter@workspace:deps/socket.io-adapter"
   dependencies:
+    "@types/debug": "npm:^4.1.12"
+    "@types/expect.js": "npm:^0.3.32"
+    "@types/mocha": "npm:^10.0.1"
+    "@types/node": "npm:^14.11.2"
     debug: "npm:~4.3.4"
+    expect.js: "npm:^0.3.1"
+    mocha: "npm:^10.2.0"
+    nyc: "npm:^15.1.0"
+    prettier: "npm:^2.8.1"
+    socket.io: "npm:^4.7.4"
+    socket.io-client: "npm:^4.7.4"
+    ts-node: "npm:^10.9.1"
+    typescript: "npm:^4.9.4"
     ws: "npm:~8.11.0"
-  checksum: 10c0/839b50ba2a08a70ccf9b597b2f5e275a47c2f62fa423b1906249ab24facc7f2b7eeb695ef8bbfc3570ab769564fb9148d2608621800ef99917338fa9dd99e127
-  languageName: node
-  linkType: hard
+  languageName: unknown
+  linkType: soft
 
 "socket.io-client-v2@npm:socket.io-client@^2.4.0":
   version: 2.5.0
@@ -11277,7 +11302,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.2.1, ts-node@npm:^10.9.2":
+"ts-node@npm:^10.2.1, ts-node@npm:^10.9.1, ts-node@npm:^10.9.2":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
@@ -11511,7 +11536,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.4.2, typescript@npm:^4.4.3":
+"typescript@npm:^4.4.2, typescript@npm:^4.4.3, typescript@npm:^4.9.4":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -11541,7 +11566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^4.4.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.4.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^4.4.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.4.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.9.4#optional!builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
