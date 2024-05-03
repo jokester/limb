@@ -17,7 +17,8 @@
     "debug": "^4.3.4",
     "engine.io": "*",
     "hono": "^4.2.2",
-    "socket.io": "*"
+    "socket.io": "*",
+    "superjson": "^2.2.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240405.0",
