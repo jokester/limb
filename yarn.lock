@@ -12104,6 +12104,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ws@link:./mocks/ws::locator=%40jokester%2Flimb%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "ws@link:./mocks/ws::locator=%40jokester%2Flimb%40workspace%3A."
+  languageName: node
+  linkType: soft
+
 "ws@npm:^8.11.0":
   version: 8.16.0
   resolution: "ws@npm:8.16.0"
