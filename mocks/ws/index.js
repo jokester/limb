@@ -1,3 +1,5 @@
-console.log('mock/ws');
+class Server {}
 
-module.exports = undefined;
+module.exports = {
+  Server,
+}

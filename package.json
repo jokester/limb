@@ -34,6 +34,7 @@
     "@types/node": "^18",
     "engine.io": "workspace:*",
     "engine.io/debug": "workspace:*",
+    "engine.io/ws": "link:./mocks/ws",
     "socket.io": "workspace:*",
     "socket.io/debug": "workspace:*",
     "socket.io-adapter": "workspace:*",
