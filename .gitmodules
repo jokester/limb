@@ -10,3 +10,6 @@
 [submodule "deps/socket.io-adapter"]
 	path = deps/socket.io-adapter
 	url = https://github.com/jokester/socket.io-adapter
+[submodule "deps/engine.io-parser"]
+	path = deps/engine.io-parser
+	url = https://github.com/jokester/engine.io-parser.git
