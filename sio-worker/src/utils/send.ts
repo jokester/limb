@@ -1,9 +1,7 @@
 import type * as CF from '@cloudflare/workers-types';
 import {lazyThenable} from '@jokester/ts-commonutil/lib/concurrency/lazy-thenable';
-import {JSONValue} from 'hono/dist/types/utils/types';
 
-/** FIXME: maybe try superjson to support more primitive-like values? */
-export type ActorMethodMap = Record<string, (...args: JSONValue[]) => unknown>;
+export type ActorMethodMap = Record<string, (...args: any[]) => Promise<any>>;
 
 const dummyUrlPrefix = 'https://dummy-origin.internal/';
 
@@ -27,6 +25,7 @@ export async function send<
     .get(dest.id)
     .fetch(`${dummyUrlPrefix}${String(method)}`, {
       method: 'POST',
+      /** FIXME: maybe try superjson to support more primitive-like values? */
       // FIXME: content-type?
       body: JSON.stringify(params),
     });

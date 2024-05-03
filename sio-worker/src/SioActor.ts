@@ -9,24 +9,27 @@ import {WorkerBindings} from './workerApp';
 
 const debugLogger = createDebugLogger('sio-worker:SioActor');
 
+/**
+ * An eio.Socket, identified by a sid, located in a CF Durable Object
+ */
 interface SocketAddress {
-  sid: string
-  doName: string
+  sid: string;
+  doName: string;
 }
 
 interface Methods extends ActorMethodMap {
-  onConnection(socketAddr: SocketAddress): unknown;
+  onConnection(socketAddr: SocketAddress): Promise<void>;
 
-  onConnectionClose( socketAddr: SocketAddress ): unknown;
+  onConnectionClose(socketAddr: SocketAddress): Promise<void>;
 
-  onConnectionError(socketAddr: SocketAddress): unknown;
+  onConnectionError(socketAddr: SocketAddress): Promise<void>;
 
   onMessage(
     socketAddr: SocketAddress,
     data: {
-      message: string
+      message: string;
     }
-  ): void;
+  ): Promise<void>;
 }
 
 class MockSocket implements InstanceType<typeof EioSocket> {
@@ -35,24 +38,22 @@ class MockSocket implements InstanceType<typeof EioSocket> {
 }
 
 class SioServer extends BaseSioServer implements Methods {
+  constructor(
+    private state: CF.DurableObjectState,
 
-  constructor( private state: CF.DurableObjectState,
-
-               private readonly env: WorkerBindings
-               ) {
+    private readonly env: WorkerBindings
+  ) {
     super();
   }
   // FIXME caller should save/restore internal state
-  onConnection(socketAddr: SocketAddress): unknown {
+  async onConnection(socketAddr: SocketAddress): Promise<void> {
     const f = this.env.engineActor.idFromName(socketAddr.doName);
-
   }
 
-  onMessage(socketAddr: SocketAddress, data) {
-  }
-  onConnectionClose(socketAddr: SocketAddress): unknown {}
+  async onMessage(socketAddr: SocketAddress, data: {message: string}) {}
+  async onConnectionClose(socketAddr: SocketAddress) {}
 
-  onConnectionError(socketAddr: SocketAddress): unknown {}
+  async onConnectionError(socketAddr: SocketAddress) {}
 }
 
 /**
@@ -62,7 +63,7 @@ export class SioActor implements CF.DurableObject {
   static readonly send = buildSend<Methods>();
 
   constructor(
-    private readonly  state: CF.DurableObjectState,
+    private readonly state: CF.DurableObjectState,
     private readonly env: WorkerBindings
   ) {}
 
