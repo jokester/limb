@@ -1,5 +1,5 @@
 {
-  "name": "@jokester/worker-engine",
+  "name": "@jokester/sio-worker",
   "version": "0.0.1",
   "description": "engine.io protocol with CF worker",
   "main": "main.ts",
@@ -12,6 +12,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "@jokester/sio-server": "workspace:*",
     "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
     "engine.io": "*",

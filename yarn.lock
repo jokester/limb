@@ -1027,9 +1027,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jokester/limb-sio-worker@workspace:server":
+"@jokester/limb@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@jokester/limb-sio-worker@workspace:server"
+  resolution: "@jokester/limb@workspace:."
+  dependencies:
+    "@types/node": "npm:^18"
+    esbuild: "npm:^0.20.0"
+    gts: "npm:^5.2.0"
+    typescript: "npm:^5.3.3"
+    wrangler: "npm:^3.48.0"
+  languageName: unknown
+  linkType: soft
+
+"@jokester/sio-server@workspace:*, @jokester/sio-server@workspace:server":
+  version: 0.0.0-use.local
+  resolution: "@jokester/sio-server@workspace:server"
   dependencies:
     "@jokester/ts-commonutil": "npm:^0.6.0"
     "@types/debug": "npm:^4.1.12"
@@ -1047,32 +1059,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jokester/limb@workspace:.":
+"@jokester/sio-worker@workspace:sio-worker":
   version: 0.0.0-use.local
-  resolution: "@jokester/limb@workspace:."
-  dependencies:
-    "@types/node": "npm:^18"
-    esbuild: "npm:^0.20.0"
-    gts: "npm:^5.2.0"
-    typescript: "npm:^5.3.3"
-    wrangler: "npm:^3.48.0"
-  languageName: unknown
-  linkType: soft
-
-"@jokester/ts-commonutil@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@jokester/ts-commonutil@npm:0.6.0"
-  dependencies:
-    tslib: "npm:^2"
-  checksum: 10c0/09291a8614ddb8d66821853b20a0fa51f1652af408e4e51c59de2f720d709825c0572358e3c47c3143905d46a7d6550bac6a43200974363f6deee75b97696501
-  languageName: node
-  linkType: hard
-
-"@jokester/worker-engine@workspace:sio-worker":
-  version: 0.0.0-use.local
-  resolution: "@jokester/worker-engine@workspace:sio-worker"
+  resolution: "@jokester/sio-worker@workspace:sio-worker"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240405.0"
+    "@jokester/sio-server": "workspace:*"
     "@jokester/ts-commonutil": "npm:^0.6.0"
     "@types/debug": "npm:^4.1.12"
     "@types/node": "npm:*"
@@ -1086,6 +1078,15 @@ __metadata:
     wrangler: "npm:*"
   languageName: unknown
   linkType: soft
+
+"@jokester/ts-commonutil@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@jokester/ts-commonutil@npm:0.6.0"
+  dependencies:
+    tslib: "npm:^2"
+  checksum: 10c0/09291a8614ddb8d66821853b20a0fa51f1652af408e4e51c59de2f720d709825c0572358e3c47c3143905d46a7d6550bac6a43200974363f6deee75b97696501
+  languageName: node
+  linkType: hard
 
 "@jridgewell/gen-mapping@npm:^0.3.2, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.5

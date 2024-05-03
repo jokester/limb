@@ -1,7 +1,7 @@
 {
-  "name": "@jokester/limb-sio-worker",
+  "name": "@jokester/sio-server",
   "version": "0.0.1",
-  "description": "a purpose-free signaling server",
+  "description": "a simple socket.io server",
   "main": "main.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
