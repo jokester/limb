@@ -35,7 +35,7 @@
     "engine.io": "workspace:*",
     "engine.io/debug": "workspace:*",
     "engine.io/ws": "link:./mocks/ws",
-    "engine.io-parser": "link:./deps/engine.io-parser",
+    "engine.io/engine.io-parser": "link:./deps/engine.io-parser",
     "socket.io": "workspace:*",
     "socket.io/debug": "workspace:*",
     "socket.io-adapter": "workspace:*",

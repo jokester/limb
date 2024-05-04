@@ -1885,6 +1885,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"after@npm:0.8.2":
+  version: 0.8.2
+  resolution: "after@npm:0.8.2"
+  checksum: 10c0/b7ac8c7936eadfcb7cd6714150f04977745f3555db0d2183fd219d1f69a0d2dba95c1db16f372b45aef6670bda74c674a49a74100310080676b7ec308842a9c3
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:^7.0.2, agent-base@npm:^7.1.0, agent-base@npm:^7.1.1":
   version: 7.1.1
   resolution: "agent-base@npm:7.1.1"
@@ -2210,6 +2217,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"arraybuffer.slice@npm:~0.0.7":
+  version: 0.0.7
+  resolution: "arraybuffer.slice@npm:0.0.7"
+  checksum: 10c0/64bbc32b9501f5c1c7bcfca38fcfd976650a91ffbff342cdff532bef7e2fa67e3b43a9242ca6f3e10715b5d1ed8243b0850cd506a84f7bbad5905a04a92b4b9a
+  languageName: node
+  linkType: hard
+
 "arrify@npm:^1.0.1":
   version: 1.0.1
   resolution: "arrify@npm:1.0.1"
@@ -2331,6 +2345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base64-arraybuffer@npm:0.1.4":
+  version: 0.1.4
+  resolution: "base64-arraybuffer@npm:0.1.4"
+  checksum: 10c0/7876324c1457f25707d83ac74f640ef116acdf39a8c8c195eb6d7c90e0588421904a7e7f064b5a0b29a1a52dd5cd488c30595df7c5f69663cfc6438512409d1c
+  languageName: node
+  linkType: hard
+
 "base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -2385,6 +2406,13 @@ __metadata:
   version: 2.1.5
   resolution: "blake3-wasm@npm:2.1.5"
   checksum: 10c0/5dc729d8e3a9d1d7ab016b36cdda264a327ada0239716df48435163e11d2bf6df25d6e421655a1f52649098ae49555268a654729b7d02768f77c571ab37ef814
+  languageName: node
+  linkType: hard
+
+"blob@npm:0.0.5":
+  version: 0.0.5
+  resolution: "blob@npm:0.0.5"
+  checksum: 10c0/56adf88c6da42bb17a7ec5f8ed2506e8e83626b2a1094548cb21aaa2355018c82529c56f065ed7fa8e109199149953c33c0039aa609a79c4948a60e1f92a84db
   languageName: node
   linkType: hard
 
@@ -4071,6 +4099,33 @@ __metadata:
   resolution: "engine.io-parser@link:./deps/engine.io-parser::locator=%40jokester%2Flimb%40workspace%3A."
   languageName: node
   linkType: soft
+
+"engine.io-parser@npm:~2.2.0":
+  version: 2.2.1
+  resolution: "engine.io-parser@npm:2.2.1"
+  dependencies:
+    after: "npm:0.8.2"
+    arraybuffer.slice: "npm:~0.0.7"
+    base64-arraybuffer: "npm:0.1.4"
+    blob: "npm:0.0.5"
+    has-binary2: "npm:~1.0.2"
+  checksum: 10c0/b604d52b031d4ba350ae61228fa834b9502e3721ddcf79c0333aaedd604595d7cb8e90240e2b1206512ed9611950e3e3d1d1fae59f18ed0dbb5ff3c70b105306
+  languageName: node
+  linkType: hard
+
+"engine.io-parser@npm:~5.1.0":
+  version: 5.1.0
+  resolution: "engine.io-parser@npm:5.1.0"
+  checksum: 10c0/e52c5e85bd636fd1172bfe34b490c62a315b7ccbffcf302214c3a7d85d66057d8689a7780b807ce7ec21b9aa9830dfd0c2aced539601d8f4791aeeaea8d30d20
+  languageName: node
+  linkType: hard
+
+"engine.io-parser@npm:~5.2.1":
+  version: 5.2.2
+  resolution: "engine.io-parser@npm:5.2.2"
+  checksum: 10c0/38e71a92ed75e2873d4d9cfab7f889e4a3cfc939b689abd1045e1b2ef9f1a50d0350a2bef69f33d313c1aa626232702da5a9043a1038d76f5ecc0be440c648ab
+  languageName: node
+  linkType: hard
 
 "engine.io@workspace:*, engine.io@workspace:deps/engine.io":
   version: 0.0.0-use.local
