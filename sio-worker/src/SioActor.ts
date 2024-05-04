@@ -7,6 +7,7 @@ import {EventEmitter} from 'events';
 import {Socket as EioSocket} from 'engine.io/lib/socket';
 import {Server as BaseSioServer} from 'socket.io/lib/index';
 import {WorkerBindings} from './workerApp';
+import * as limbV1 from '@jokester/sio-server/namespace-v1';
 
 const debugLogger = createDebugLogger('sio-worker:SioActor');
 
@@ -86,7 +87,7 @@ class SioServer extends BaseSioServer implements Methods {
   private readonly _remoteConns = new Map<string, DistantSocket>();
 
   private getDistantSocket(
-    {sid, doName}: DistantSocketAddress,
+    {socketId: sid, doId}: DistantSocketAddress,
     allowCreate: boolean
   ): null | DistantSocket {
     if (this._remoteConns.has(sid)) {
@@ -97,7 +98,7 @@ class SioServer extends BaseSioServer implements Methods {
     }
     const socket = new DistantSocket(
       sid,
-      this.env.engineActor.idFromName(doName)
+      this.env.engineActor.idFromString(doId)
     );
     this._remoteConns.set(sid, socket);
     return socket;
@@ -113,7 +114,9 @@ class SioServer extends BaseSioServer implements Methods {
     const s = this.getDistantSocket(socketAddr, false);
     if (!s) {
       debugLogger('WARN onMessage: socket not found', socketAddr);
+      return;
     }
+    s.emit('data', data);
   }
   async onConnectionClose(socketAddr: DistantSocketAddress) {}
 
@@ -133,6 +136,9 @@ export class SioActor implements CF.DurableObject {
 
   sioServer = lazy(() => {
     const s = new SioServer(this.state, this.env);
+    s.of(limbV1.parentNamespace).on('connection', socket =>
+      limbV1.onV1Connection(socket)
+    );
     return s;
   });
 
