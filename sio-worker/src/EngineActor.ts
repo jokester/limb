@@ -217,7 +217,7 @@ export class EngineActor implements CF.DurableObject {
         id: destId,
       },
       'onConnection',
-      [sid, this.state.id]
+      [{doName: this.state.id.name!, sid: sid}]
     ).then(res => {
       debugLogger('onConnection res', res);
     });
@@ -231,7 +231,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onMessage',
-          [sid, this.state.id, msg]
+          [{doName: this.state.id.name!, sid: sid}, msg]
         )
       )
       .on('close', msg =>
@@ -241,7 +241,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionClose',
-          [sid, this.state.id]
+          [{doName: this.state.id.name!, sid: sid}]
         )
       )
       .on('error', msg =>
@@ -251,7 +251,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionError',
-          [sid, this.state.id]
+          [{doName: this.state.id.name!, sid: sid}]
         )
       );
   }

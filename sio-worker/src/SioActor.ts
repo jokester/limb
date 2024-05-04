@@ -54,6 +54,10 @@ class DistantSocket
     };
   }
 
+  close() {
+    debugLogger('DistantSocket#close()');
+  }
+
   write(
     packets: (string | Buffer)[],
     opts: {
@@ -64,6 +68,7 @@ class DistantSocket
     }
   ) {
     // TODO
+    debugLogger('DistantSocket#write()', packets, opts);
   }
 }
 
@@ -78,9 +83,9 @@ class SioServer extends BaseSioServer implements Methods {
     });
   }
 
-  private readonly _remoteConns = new Map<string, RemoteSocket>();
+  private readonly _remoteConns = new Map<string, DistantSocket>();
 
-  private getRemoteSocket(
+  private getDistantSocket(
     {sid, doName}: SocketAddress,
     allowCreate: boolean
   ): null | DistantSocket {
@@ -99,12 +104,18 @@ class SioServer extends BaseSioServer implements Methods {
   }
   // FIXME caller should save/restore internal state
   async onConnection(socketAddr: SocketAddress): Promise<void> {
-    const socket = this.getRemoteSocket(socketAddr, true)!;
+    const socket = this.getDistantSocket(socketAddr, true)!;
     // @ts-expect-error
     this.onconnection(socket);
   }
 
-  async onMessage(socketAddr: SocketAddress, data: {message: string}) {}
+  async onMessage(socketAddr: SocketAddress, data: {message: string}) {
+    const s = this.getDistantSocket(socketAddr, false);
+    if (!s) {
+      debugLogger('WARN onMessage: socket not found', socketAddr);
+    }
+
+  }
   async onConnectionClose(socketAddr: SocketAddress) {}
 
   async onConnectionError(socketAddr: SocketAddress) {}
@@ -143,6 +154,8 @@ export class SioActor implements CF.DurableObject {
           await ctx.req.json();
 
         debugLogger('onMessage', socketAddr, data);
+
+        await this.sioServer.value.onMessage(socketAddr, data);
       })
       .post('/onConnectionClose', async ctx => {
         const [socketAddr]: Parameters<Methods['onConnectionClose']> =
