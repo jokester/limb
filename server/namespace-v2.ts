@@ -27,7 +27,7 @@ export function onV2Connection(
     onInternalError(socket, error);
   });
 
-  socket.on('message', (event, payload) => {
+  socket.on('message', (event: string, payload: any) => {
     try {
       handleUserMessage(namespace, socket, event, payload);
     } catch (e) {

@@ -3,7 +3,8 @@ import {ActorMethodMap, buildSend} from './utils/send';
 import {lazy} from './utils/lazy';
 import {Hono} from 'hono';
 import {createDebugLogger} from './utils/logger';
-import type {Socket as EioSocket} from 'engine.io/lib/socket';
+import {EventEmitter} from 'events';
+import {Socket as EioSocket} from 'engine.io/lib/socket';
 import {Server as BaseSioServer} from 'socket.io/lib/index';
 import {WorkerBindings} from './workerApp';
 
@@ -32,9 +33,38 @@ interface Methods extends ActorMethodMap {
   ): Promise<void>;
 }
 
-class MockSocket implements InstanceType<typeof EioSocket> {
-  // TODO
-  // event emitter + writable interface for this DO
+/**
+ * A stub that (looking from a sio.Server) works like an eio.Socket
+ */
+class DistantSocket
+  extends EventEmitter
+  implements Pick<EioSocket, 'readyState' | 'send' | 'transport'>
+{
+  constructor(readonly sid: string, readonly supervisor: CF.DurableObjectId) {
+    super();
+  }
+
+  get readyState() {
+    return 'open' as const;
+  }
+
+  get transport() {
+    return {
+      writable: true,
+    };
+  }
+
+  write(
+    packets: (string | Buffer)[],
+    opts: {
+      compress?: boolean;
+      volatile?: boolean;
+      preEncoded?: boolean;
+      wsPreEncoded?: string;
+    }
+  ) {
+    // TODO
+  }
 }
 
 class SioServer extends BaseSioServer implements Methods {
@@ -43,11 +73,35 @@ class SioServer extends BaseSioServer implements Methods {
 
     private readonly env: WorkerBindings
   ) {
-    super();
+    super({
+      connectionStateRecovery: undefined,
+    });
+  }
+
+  private readonly _remoteConns = new Map<string, RemoteSocket>();
+
+  private getRemoteSocket(
+    {sid, doName}: SocketAddress,
+    allowCreate: boolean
+  ): null | DistantSocket {
+    if (this._remoteConns.has(sid)) {
+      return this._remoteConns.get(sid)!;
+    }
+    if (!allowCreate) {
+      return null;
+    }
+    const socket = new DistantSocket(
+      sid,
+      this.env.engineActor.idFromName(doName)
+    );
+    this._remoteConns.set(sid, socket);
+    return socket;
   }
   // FIXME caller should save/restore internal state
   async onConnection(socketAddr: SocketAddress): Promise<void> {
-    const f = this.env.engineActor.idFromName(socketAddr.doName);
+    const socket = this.getRemoteSocket(socketAddr, true)!;
+    // @ts-expect-error
+    this.onconnection(socket);
   }
 
   async onMessage(socketAddr: SocketAddress, data: {message: string}) {}
@@ -57,7 +111,7 @@ class SioServer extends BaseSioServer implements Methods {
 }
 
 /**
- * works like a sio.Server
+ * holds a sio.Server
  */
 export class SioActor implements CF.DurableObject {
   static readonly send = buildSend<Methods>();

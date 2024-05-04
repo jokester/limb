@@ -18,14 +18,15 @@ import {type ActorMethodMap, buildSend} from './utils/send';
 import {createDebugLogger} from './utils/logger';
 import type {IncomingMessage} from 'node:http';
 import {EventEmitter} from 'node:events';
+import type {SendOptions} from 'engine.io/lib/socket';
 
 declare const self: CF.ServiceWorkerGlobalScope;
 
 const debugLogger = createDebugLogger('sio-worker:EngineActor');
 
 interface Methods extends ActorMethodMap {
-  send(sid: string, msg: string | Buffer): void;
-  close(sid: string, cause?: any): void;
+  send(sid: string, data: string | Buffer, options: SendOptions): Promise<void>;
+  close(sid: string, cause?: any): Promise<void>;
 }
 
 function crateDummyRequest(
@@ -78,6 +79,7 @@ class EioServer extends EioBaseServer {
   constructor(private readonly actor: EngineActor) {
     super({
       transports: ['websocket'],
+      perMessageDeflate: false,
     });
   }
   init() {}
