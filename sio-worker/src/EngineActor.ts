@@ -13,7 +13,7 @@ import {
   type WsWebSocket,
 } from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
-import {SioActor} from './SioActor';
+import { DistantSocketAddress, SioActor } from "./SioActor";
 import {type ActorMethodMap, buildSend} from './utils/send';
 import {createDebugLogger} from './utils/logger';
 import type {IncomingMessage} from 'node:http';
@@ -193,8 +193,10 @@ export class EngineActor implements CF.DurableObject {
   constructor(
     private state: CF.DurableObjectState,
     private readonly env: WorkerBindings
-  ) {}
-
+  ) {
+    // debugLogger('state', state)
+    // debugLogger('env', env)
+  }
   readonly eioServer = lazy(() => {
     const s = new EioServer(this);
     // FIXME the 2 object exists but inspecting them will cause error
@@ -211,13 +213,18 @@ export class EngineActor implements CF.DurableObject {
     const sid: string = socket.id;
     const destId = this.env.sioActor.idFromName('singleton');
 
+    const addr: DistantSocketAddress = {
+      socketId: sid,
+      doId: this.state.id as unknown as string
+    }
+
     await SioActor.send(
       {
         kind: this.env.sioActor,
         id: destId,
       },
       'onConnection',
-      [{doName: this.state.id.name!, sid: sid}]
+      [addr]
     ).then(res => {
       debugLogger('onConnection res', res);
     });
@@ -231,7 +238,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onMessage',
-          [{doName: this.state.id.name!, sid: sid}, msg]
+          [addr, msg]
         )
       )
       .on('close', msg =>
@@ -241,7 +248,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionClose',
-          [{doName: this.state.id.name!, sid: sid}]
+          [addr]
         )
       )
       .on('error', msg =>
@@ -251,7 +258,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionError',
-          [{doName: this.state.id.name!, sid: sid}]
+          [addr]
         )
       );
   }

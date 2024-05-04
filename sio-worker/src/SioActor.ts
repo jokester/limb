@@ -13,20 +13,20 @@ const debugLogger = createDebugLogger('sio-worker:SioActor');
 /**
  * An eio.Socket, identified by a sid, located in a CF Durable Object
  */
-interface SocketAddress {
-  sid: string;
-  doName: string;
+export interface DistantSocketAddress {
+  socketId: string;
+  doId: string;
 }
 
 interface Methods extends ActorMethodMap {
-  onConnection(socketAddr: SocketAddress): Promise<void>;
+  onConnection(socketAddr: DistantSocketAddress): Promise<void>;
 
-  onConnectionClose(socketAddr: SocketAddress): Promise<void>;
+  onConnectionClose(socketAddr: DistantSocketAddress): Promise<void>;
 
-  onConnectionError(socketAddr: SocketAddress): Promise<void>;
+  onConnectionError(socketAddr: DistantSocketAddress): Promise<void>;
 
   onMessage(
-    socketAddr: SocketAddress,
+    socketAddr: DistantSocketAddress,
     data: {
       message: string;
     }
@@ -86,7 +86,7 @@ class SioServer extends BaseSioServer implements Methods {
   private readonly _remoteConns = new Map<string, DistantSocket>();
 
   private getDistantSocket(
-    {sid, doName}: SocketAddress,
+    {sid, doName}: DistantSocketAddress,
     allowCreate: boolean
   ): null | DistantSocket {
     if (this._remoteConns.has(sid)) {
@@ -103,22 +103,21 @@ class SioServer extends BaseSioServer implements Methods {
     return socket;
   }
   // FIXME caller should save/restore internal state
-  async onConnection(socketAddr: SocketAddress): Promise<void> {
+  async onConnection(socketAddr: DistantSocketAddress): Promise<void> {
     const socket = this.getDistantSocket(socketAddr, true)!;
     // @ts-expect-error
     this.onconnection(socket);
   }
 
-  async onMessage(socketAddr: SocketAddress, data: {message: string}) {
+  async onMessage(socketAddr: DistantSocketAddress, data: {message: string}) {
     const s = this.getDistantSocket(socketAddr, false);
     if (!s) {
       debugLogger('WARN onMessage: socket not found', socketAddr);
     }
-
   }
-  async onConnectionClose(socketAddr: SocketAddress) {}
+  async onConnectionClose(socketAddr: DistantSocketAddress) {}
 
-  async onConnectionError(socketAddr: SocketAddress) {}
+  async onConnectionError(socketAddr: DistantSocketAddress) {}
 }
 
 /**
