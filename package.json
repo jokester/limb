@@ -40,6 +40,8 @@
     "socket.io/debug": "workspace:*",
     "socket.io-adapter": "workspace:*",
     "socket.io-adapter/ws": "link:./mocks/ws",
+    "socket.io-adapter/debug": "workspace:*",
+    "socket.io-parser/debug": "workspace:*",
     "rollup-plugin-node-polyfills": "workspace:*"
   },
   "author": "",
