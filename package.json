@@ -33,11 +33,10 @@
   "resolutions": {
     "@types/node": "^18",
     "engine.io": "workspace:*",
-    "engine.io/debug": "workspace:*",
+    "debug": "workspace:*",
     "engine.io/ws": "link:./mocks/ws",
     "engine.io/engine.io-parser": "link:./deps/engine.io-parser",
     "socket.io": "workspace:*",
-    "socket.io/debug": "workspace:*",
     "socket.io-adapter": "workspace:*",
     "socket.io-adapter/ws": "link:./mocks/ws",
     "rollup-plugin-node-polyfills": "workspace:*"
