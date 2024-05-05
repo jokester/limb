@@ -14,7 +14,7 @@ export const workerApp = new Hono<{Bindings: WorkerBindings}>().get(
   ctx => {
     // debugLogger('ws connection request', ctx.req.url);
 
-    const actorId = ctx.env.engineActor.idFromName('singleton');
+    const actorId = ctx.env.engineActor.newUniqueId({});
     const actor = ctx.env.engineActor.get(actorId);
     return actor
       .fetch('https://engineActor.internal/socket.io', ctx.req.raw)
