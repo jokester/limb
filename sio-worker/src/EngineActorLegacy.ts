@@ -1,3 +1,6 @@
+/**
+ * @file first version of EngineActor, creates more stuff including a eio.Server
+ */
 import type * as CF from '@cloudflare/workers-types';
 import {WorkerBindings} from './workerApp';
 import {lazy} from './utils/lazy';

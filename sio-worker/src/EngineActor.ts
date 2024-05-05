@@ -6,7 +6,7 @@ import {DistantSocketAddress, SioActor} from './SioActor';
 import {buildSend} from './utils/send';
 import {createDebugLogger} from './utils/logger';
 import type {SendOptions} from 'engine.io/lib/socket';
-import * as EngineLight from './EngineLight';
+import * as EngineStub from './EngineStub';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
 
@@ -36,9 +36,9 @@ export class EngineActor implements CF.DurableObject {
     return this.state.id.toString();
   }
 
-  private readonly _socket = new Deferred<EngineLight.EioSocket>(true);
+  private readonly _socket = new Deferred<EngineStub.EioSocket>(true);
 
-  private get socket(): Promise<EngineLight.EioSocket> {
+  private get socket(): Promise<EngineStub.EioSocket> {
     return Promise.race([
       this._socket,
       wait(1e3).then(() => {
@@ -52,7 +52,7 @@ export class EngineActor implements CF.DurableObject {
     private readonly env: WorkerBindings
   ) {}
 
-  private async onEioSocket(sid: string, socket: EngineLight.EioSocket) {
+  private async onEioSocket(sid: string, socket: EngineStub.EioSocket) {
     const destId = this.env.sioActor.idFromName('singleton');
 
     const addr: DistantSocketAddress = {
@@ -119,14 +119,13 @@ export class EngineActor implements CF.DurableObject {
         const {0: clientSocket, 1: serverSocket} = new self.WebSocketPair();
         // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
 
-        const sid = this.state.id.toString();
-        const socket = EngineLight.createEioSocket(sid, serverSocket);
+        const sid = this.eioSid;
         /**
          * TODO remove tags
          */
         const tags = [`sid:${sid}`];
         this.state.acceptWebSocket(serverSocket, tags);
-        // serverSocket.accept();
+        const socket = EngineStub.createEioSocket(sid, serverSocket);
 
         await this.onEioSocket(sid, socket);
         this._socket.fulfill(socket);
