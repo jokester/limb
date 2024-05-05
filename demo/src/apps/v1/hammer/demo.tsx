@@ -1,4 +1,4 @@
-import {PropsWithChildren, useEffect, useRef, useState} from 'react';
+import { memo, PropsWithChildren, useEffect, useRef, useState } from "react";
 import {createHammerManager, createLocalHammerInput$} from './local-source';
 import {EMPTY, Observable, share} from 'rxjs';
 import {useObservable} from '../../../hooks/use-observable';
@@ -11,7 +11,7 @@ import {useInputReplayElements} from './replay';
 
 const logger = debug('limb:v1:hammer:demo');
 
-export function HammerTouchDemo({
+function _HammerTouchDemo({
   ownClientId,
   namespace,
 }: PropsWithChildren<{namespace: string; ownClientId: string}>) {
@@ -54,6 +54,8 @@ export function HammerTouchDemo({
 
   const svgChildren = useInputReplayElements(unified$, ownClientId);
 
+  logger('svgChildren', svgChildren)
+
   return (
     <div className="text-center py-2">
       <svg className="inline-block w-64 h-64 bg-gray-200" ref={touchableRef}>
@@ -62,3 +64,5 @@ export function HammerTouchDemo({
     </div>
   );
 }
+
+export const HammerTouchDemo = memo(_HammerTouchDemo, whatever => true);
