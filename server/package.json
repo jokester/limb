@@ -9,6 +9,7 @@
     "clean": "gts clean",
     "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
     "build": "node build.mjs",
+    "deploy:cf": "wrangler deploy",
     "fix": "gts fix"
   },
   "author": "",
@@ -28,9 +29,7 @@
     "gts": "*",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
-    "typescript": "*"
-  },
-  "overrides": {
-    "@types/node": "^18"
+    "typescript": "*",
+    "wrangler": "*"
   }
 }

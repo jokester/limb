@@ -1057,6 +1057,7 @@ __metadata:
     socket.io: "npm:^4.7.5"
     ts-node: "npm:^10.9.2"
     typescript: "npm:*"
+    wrangler: "npm:*"
   languageName: unknown
   linkType: soft
 
