@@ -57,7 +57,7 @@ export class EngineActor implements CF.DurableObject {
 
     const addr: DistantSocketAddress = {
       socketId: sid,
-      doId: this.state.id as unknown as string,
+      doId: this.state.id.toString() as unknown as string,
     };
 
     await SioActor.send(
