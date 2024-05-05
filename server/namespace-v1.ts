@@ -1,5 +1,5 @@
 import debug from 'debug';
-import type sio from 'socket.io';
+import type * as sio from 'socket.io/lib';
 
 export const parentNamespace = /^\/v1\/[-\w:.]+$/;
 

@@ -31,7 +31,9 @@ function usePageState(namespace: string): PageState {
 
   useEffect(() => {
     const defaultOrigin = getSocketServerOrigin();
-    const socket = io(`${defaultOrigin}/v1/${namespace}`);
+    const socket = io(`${defaultOrigin}/v1/${namespace}`, {
+      transports: ['websocket'],
+    });
     setState(prev => ({...prev, conn: socket}));
 
     for (const event of ['connect', 'disconnect', 'connect_error']) {

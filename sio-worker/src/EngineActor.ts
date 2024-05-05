@@ -13,8 +13,8 @@ import {
   type WsWebSocket,
 } from 'engine.io/lib/transports/websocket';
 import {Deferred} from '@jokester/ts-commonutil/lib/concurrency/deferred';
-import { DistantSocketAddress, SioActor } from "./SioActor";
-import {type ActorMethodMap, buildSend} from './utils/send';
+import {DistantSocketAddress, SioActor} from './SioActor';
+import {buildSend} from './utils/send';
 import {createDebugLogger} from './utils/logger';
 import type {IncomingMessage} from 'node:http';
 import {EventEmitter} from 'node:events';
@@ -24,9 +24,13 @@ declare const self: CF.ServiceWorkerGlobalScope;
 
 const debugLogger = createDebugLogger('sio-worker:EngineActor');
 
-interface Methods extends ActorMethodMap {
-  send(sid: string, data: string | Buffer, options: SendOptions): Promise<void>;
-  close(sid: string, cause?: any): Promise<void>;
+interface Methods {
+  sendPackets(
+    sid: string,
+    encodedPackets: (string | Buffer)[],
+    options: SendOptions
+  ): Promise<void>;
+  closeSocket(sid: string, cause?: any): Promise<void>;
 }
 
 function crateDummyRequest(
@@ -178,6 +182,19 @@ class EioServer extends EioBaseServer {
     // this should escalate EioWebSocket > EioSocket
     (socket.transport as EioWebSocket)._socket.emit('error', new Error(msg));
   }
+
+  writeToSocket(
+    sid: string,
+    encodedPackets: (string | Buffer)[],
+    opts: SendOptions
+  ) {
+    const socket = this.clients[sid];
+    if (!socket) {
+      debugLogger('WARNING writeToSocket(): no socket found for sid', sid);
+      return;
+    }
+    socket.write(encodedPackets, opts);
+  }
 }
 
 /**
@@ -188,6 +205,7 @@ class EioServer extends EioBaseServer {
  * - forwards message to Socket
  */
 export class EngineActor implements CF.DurableObject {
+  // @ts-expect-error
   static readonly send = buildSend<Methods>();
 
   constructor(
@@ -215,8 +233,8 @@ export class EngineActor implements CF.DurableObject {
 
     const addr: DistantSocketAddress = {
       socketId: sid,
-      doId: this.state.id as unknown as string
-    }
+      doId: this.state.id as unknown as string,
+    };
 
     await SioActor.send(
       {
@@ -248,7 +266,7 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionClose',
-          [addr]
+          [addr, String(msg)]
         )
       )
       .on('error', msg =>
@@ -258,39 +276,53 @@ export class EngineActor implements CF.DurableObject {
             id: destId,
           },
           'onConnectionError',
-          [addr]
+          [addr, {message: String(msg)}]
         )
       );
   }
 
   readonly honoApp = lazy(() =>
-    new Hono().get('/socket.io/*', async ctx => {
-      if (ctx.req.header('Upgrade') !== 'websocket') {
-        return new Response(null, {
-          status: 426,
-          statusText: 'Not a Upgrade request',
-        });
-      }
+    new Hono()
+      .get('/socket.io/*', async ctx => {
+        if (ctx.req.header('Upgrade') !== 'websocket') {
+          return new Response(null, {
+            status: 426,
+            statusText: 'Not a Upgrade request',
+          });
+        }
 
-      debugLogger('new ws connection', ctx.req.url);
-      const {0: clientSocket, 1: serverSocket} = new self.WebSocketPair();
-      // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
+        debugLogger('new ws connection', ctx.req.url);
+        const {0: clientSocket, 1: serverSocket} = new self.WebSocketPair();
+        // TODO: if req contains a Engine.io sid, should query engine.io server to follow the protocol
 
-      const dummyReq = crateDummyRequest(serverSocket, this);
-      const sid = await this.eioServer.value.generateId(dummyReq, true);
-      const tags = [`sid:${sid}`];
-      this.state.acceptWebSocket(serverSocket, tags);
-      // serverSocket.accept();
+        const dummyReq = crateDummyRequest(serverSocket, this);
+        const sid = await this.eioServer.value.generateId(dummyReq, true);
+        const tags = [`sid:${sid}`];
+        this.state.acceptWebSocket(serverSocket, tags);
+        // serverSocket.accept();
 
-      await this.eioServer.value.onCfSocket(sid, dummyReq);
-      // serverSocket.send('wtf');
+        await this.eioServer.value.onCfSocket(sid, dummyReq);
+        // serverSocket.send('wtf');
 
-      return new self.Response(null, {status: 101, webSocket: clientSocket});
-    })
+        return new self.Response(null, {status: 101, webSocket: clientSocket});
+      })
+      .post('/sendPackets', async ctx => {
+        const [sid, encodedPackets, options]: Parameters<
+          Methods['sendPackets']
+        > = await ctx.req.json();
+        debugLogger('sendPackets', sid, encodedPackets, options);
+        this.eioServer.value.writeToSocket(sid, encodedPackets, options);
+      })
+      .post('/closeSocket', async ctx => {
+        const [sid, cause]: Parameters<Methods['closeSocket']> =
+          await ctx.req.json();
+        debugLogger('closeSocket', sid, cause);
+      })
   );
 
-  fetch(req: Request): Response | Promise<Response> {
+  fetch(req: Request): CF.Response | Promise<CF.Response> {
     const {value: app} = this.honoApp;
+    // @ts-expect-error
     return app.fetch(req, this.env);
   }
 
