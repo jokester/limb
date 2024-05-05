@@ -9,7 +9,7 @@
     "lint": "gts lint",
     "clean": "gts clean",
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "compile": "tsc",
     "fix": "gts fix"
