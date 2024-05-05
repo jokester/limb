@@ -58,11 +58,30 @@ class DistantSocket
   }
 }
 
+interface SioServerSnapshot {
+  _distantSockets: Map</* eio sid */ string, DistantSocket>;
+}
+
 class SioServer extends BaseSioServer implements Methods {
-  constructor(private readonly env: WorkerBindings) {
+  static create(saved: SioServerSnapshot, env: WorkerBindings): SioServer {
+    return new SioServer(env, saved);
+  }
+
+  constructor(
+    private readonly env: WorkerBindings,
+    snapshot?: SioServerSnapshot
+  ) {
     super({
       connectionStateRecovery: undefined,
     });
+    if (snapshot) {
+    }
+  }
+
+  freeze(): SioServerSnapshot {
+    return {
+      _distantSockets: new Map(this._distantSockets),
+    };
   }
 
   private readonly _distantSockets = new Map<
@@ -87,7 +106,6 @@ class SioServer extends BaseSioServer implements Methods {
     this._distantSockets.set(sid, socket);
     return socket;
   }
-  // FIXME caller should save/restore internal state
 
   /**
    * this replaces {@name onconnection} in parent class
@@ -100,6 +118,7 @@ class SioServer extends BaseSioServer implements Methods {
     const client = new SioClient(this, socket as unknown as eio.Socket);
     // @ts-expect-error
     client.writeToEngine = (encodedPackets, opts) => {
+      debugLogger('writeToEngine(): sendPackets()', encodedPackets, opts);
       EngineActor.send(
         {
           kind: this.env.engineActor,
@@ -175,6 +194,7 @@ export class SioActor implements CF.DurableObject {
         debugLogger('onConnection', socketAddr);
 
         await this.sioServer.value.onConnection(socketAddr);
+        return ctx.json({});
       })
       .post('/onMessage', async ctx => {
         const [socketAddr, data]: Parameters<Methods['onMessage']> =
