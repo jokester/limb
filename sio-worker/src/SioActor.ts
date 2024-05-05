@@ -60,33 +60,6 @@ class DistantSocket
   get readyState() {
     return 'open' as const;
   }
-
-  write(
-    packets: (string | Buffer)[],
-    opts: {
-      compress?: boolean;
-      volatile?: boolean;
-      preEncoded?: boolean;
-      wsPreEncoded?: string;
-    }
-  ) {
-    // TODO
-    debugLogger('DistantSocket#write()', packets, opts);
-    if (typeof packets !== 'string') {
-      debugLogger('DistantSocket#write() expected string', packets);
-      return;
-    }
-    EngineActor.send(
-      {
-        kind: this.env.engineActor,
-        id: this.supervisor,
-      },
-      'send',
-      []
-    ).catch(e => {
-      debugLogger('DistantSocket#write() failed', e);
-    });
-  }
 }
 
 class SioServer extends BaseSioServer implements Methods {
@@ -102,11 +75,6 @@ class SioServer extends BaseSioServer implements Methods {
   private readonly _distantSockets = new Map<
     /* eio sid */ string,
     DistantSocket
-  >();
-
-  private readonly _clients = new Map<
-    /* eio sid */ string,
-    SioClient<any, any, any, any>
   >();
 
   private getDistantSocket(
@@ -151,7 +119,6 @@ class SioServer extends BaseSioServer implements Methods {
         debugLogger('writeToEngine(): failed calling sendPackets()', e)
       );
     };
-    this._clients.set(socketAddr.socketId, client);
   }
 
   async onMessage(socketAddr: DistantSocketAddress, data: {message: string}) {
@@ -173,7 +140,6 @@ class SioServer extends BaseSioServer implements Methods {
       debugLogger('WARN onConnectionClose: socket not found', socketAddr);
     }
     this._distantSockets.delete(socketAddr.socketId);
-    this._clients.delete(socketAddr.socketId);
   }
 
   async onConnectionError(
