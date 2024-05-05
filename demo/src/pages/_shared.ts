@@ -1,6 +1,8 @@
 export function getSocketServerOrigin(): string {
   const isUnsafeOrigin = location.protocol !== 'https:';
-  return isUnsafeOrigin ? 'http://localhost:18787' : 'https://limb.jokester.io';
+  return isUnsafeOrigin
+    ? 'http://localhost:18787'
+    : 'https://sio-in-cf.ihate.work/';
 }
 
 export interface PageProps<M extends Record<string, string> = {}> {

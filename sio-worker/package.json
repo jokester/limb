@@ -5,6 +5,7 @@
   "main": "main.ts",
   "scripts": {
     "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
     "esb": "DEBUG='sio-worker:*' node build.mjs",
     "build": "wrangler deploy --outdir=./build --dry-run",
     "fix": "gts fix"

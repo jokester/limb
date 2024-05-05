@@ -1,6 +1,7 @@
 import {useAsyncEffect} from '@jokester/ts-commonutil/lib/react/hook/use-async-effect';
 import {wait} from '@jokester/ts-commonutil/lib/concurrency/timing';
 import {PageProps} from './_shared';
+import {ReactElement} from 'react';
 
 const wsUrl = 'ws://localhost:18787/engine.io/';
 
@@ -25,5 +26,5 @@ function useWsDemo(url = wsUrl) {
 
 export function WsDemoPage(props: PageProps) {
   useWsDemo();
-  return 'TODO';
+  return 'TODO' as any as ReactElement;
 }
