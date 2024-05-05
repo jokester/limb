@@ -47,13 +47,9 @@ interface Methods {
  */
 class DistantSocket
   extends EventEmitter
-  implements Pick<eio.Socket, 'readyState' | 'transport'>
+  implements Pick<eio.Socket, 'readyState'>
 {
-  constructor(
-    readonly sid: string,
-    readonly supervisor: CF.DurableObjectId,
-    private readonly env: WorkerBindings
-  ) {
+  constructor(readonly sid: string, readonly supervisor: CF.DurableObjectId) {
     super();
   }
 
@@ -63,10 +59,7 @@ class DistantSocket
 }
 
 class SioServer extends BaseSioServer implements Methods {
-  constructor(
-    private state: CF.DurableObjectState,
-    private readonly env: WorkerBindings
-  ) {
+  constructor(private readonly env: WorkerBindings) {
     super({
       connectionStateRecovery: undefined,
     });
@@ -89,8 +82,7 @@ class SioServer extends BaseSioServer implements Methods {
     }
     const socket = new DistantSocket(
       sid,
-      this.env.engineActor.idFromString(doId),
-      this.env
+      this.env.engineActor.idFromString(doId)
     );
     this._distantSockets.set(sid, socket);
     return socket;
@@ -134,11 +126,11 @@ class SioServer extends BaseSioServer implements Methods {
     closeReason: string
   ) {
     const s = this.getDistantSocket(socketAddr, false);
-    if (s) {
-      s.emit('close', closeReason);
-    } else {
+    if (!s) {
       debugLogger('WARN onConnectionClose: socket not found', socketAddr);
+      return;
     }
+    s.emit('close', closeReason);
     this._distantSockets.delete(socketAddr.socketId);
   }
 
@@ -147,11 +139,11 @@ class SioServer extends BaseSioServer implements Methods {
     cause: object
   ): Promise<void> {
     const s = this.getDistantSocket(socketAddr, false);
-    if (s) {
-      s.emit('error', cause);
-    } else {
+    if (!s) {
       debugLogger('WARN onConnectionError: socket not found', socketAddr);
+      return;
     }
+    s.emit('error', cause);
   }
 }
 
@@ -168,7 +160,8 @@ export class SioActor implements CF.DurableObject {
   ) {}
 
   sioServer = lazy(() => {
-    const s = new SioServer(this.state, this.env);
+    // TODO: support clustering
+    const s = new SioServer(this.env);
     s.of(limbV1.parentNamespace).on('connection', limbV1.onV1Connection);
     return s;
   });
@@ -182,8 +175,6 @@ export class SioActor implements CF.DurableObject {
         debugLogger('onConnection', socketAddr);
 
         await this.sioServer.value.onConnection(socketAddr);
-
-        return ctx.json({message: 'got sid'});
       })
       .post('/onMessage', async ctx => {
         const [socketAddr, data]: Parameters<Methods['onMessage']> =
@@ -192,6 +183,7 @@ export class SioActor implements CF.DurableObject {
         debugLogger('onMessage', socketAddr, data);
 
         await this.sioServer.value.onMessage(socketAddr, data);
+        return ctx.json({});
       })
       .post('/onConnectionClose', async ctx => {
         const [socketAddr, closeReason]: Parameters<
@@ -200,13 +192,15 @@ export class SioActor implements CF.DurableObject {
 
         debugLogger('onConnectionClose', socketAddr);
         await this.sioServer.value.onConnectionClose(socketAddr, closeReason);
+        return ctx.json({});
       })
       .post('/onConnectionError', async ctx => {
-        const [socketAddr]: Parameters<Methods['onConnectionError']> =
+        const [socketAddr, cause]: Parameters<Methods['onConnectionError']> =
           await ctx.req.json();
 
         debugLogger('onConnectionError', socketAddr);
-        await this.sioServer.value.onConnectionError(socketAddr);
+        await this.sioServer.value.onConnectionError(socketAddr, cause);
+        return ctx.json({});
       })
   );
 
