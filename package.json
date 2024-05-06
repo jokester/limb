@@ -10,18 +10,41 @@
   },
   "workspaces": [
     "./server",
-    "./demo"
+    "./demo",
+    "./sio-worker",
+    "./deps/engine.io",
+    "./deps/socket.io",
+    "./deps/socket.io-adapter",
+    "./deps/rollup-plugin-node-polyfills",
+    "./mocks/debug"
   ],
   "engines": {
-    "node": "^18",
+    "node": "^18 || ^20",
     "npm": "^10"
   },
   "engineStrict": true,
   "devDependencies": {
+    "@types/node": "^18",
     "esbuild": "^0.20.0",
     "gts": "^5.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^3.48.0"
+  },
+  "resolutions": {
+    "@types/node": "^18",
+    "engine.io": "workspace:*",
+    "engine.io/debug": "workspace:*",
+    "engine.io/ws": "link:./mocks/ws",
+    "engine.io/engine.io-parser": "link:./deps/engine.io-parser",
+    "socket.io": "workspace:*",
+    "socket.io/debug": "workspace:*",
+    "socket.io-adapter": "workspace:*",
+    "socket.io-adapter/ws": "link:./mocks/ws",
+    "socket.io-adapter/debug": "workspace:*",
+    "socket.io-parser/debug": "workspace:*",
+    "rollup-plugin-node-polyfills": "workspace:*"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@4.1.1"
 }

@@ -1,0 +1,3 @@
+/engine.io/**/*
+/socket.io/**/*
+*.js

@@ -1,7 +1,7 @@
 {
-  "name": "@jokester/limb-server",
+  "name": "@jokester/sio-server",
   "version": "0.0.1",
-  "description": "a purpose-free signaling server",
+  "description": "a simple socket.io server",
   "main": "main.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,25 +9,27 @@
     "clean": "gts clean",
     "dev": "DEBUG=limb:*,-socket.io:* nodemon --exec ts-node-transpile-only main.ts",
     "build": "node build.mjs",
+    "deploy:cf": "wrangler deploy",
     "fix": "gts fix"
   },
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@jokester/ts-commonutil": "^0.4.2",
+    "@jokester/ts-commonutil": "^0.6.0",
     "debug": "^4.3.4",
+    "hono": "^4.2.2",
     "serve-handler": "^6.1.5",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "@types/node": "^18",
+    "@types/node": "*",
     "@types/serve-handler": "^6.1.4",
-    "@types/uuid": "^9.0.8",
-    "gts": "*",
     "esbuild": "*",
+    "gts": "*",
     "nodemon": "^3.0.3",
     "ts-node": "^10.9.2",
-    "typescript": "*"
+    "typescript": "*",
+    "wrangler": "*"
   }
 }

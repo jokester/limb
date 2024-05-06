@@ -1,11 +1,11 @@
 import http from 'node:http';
-import * as sio from 'socket.io';
+import * as sio from 'socket.io/lib';
 import path from 'node:path';
 import debug from 'debug';
 
 import serveHandler from 'serve-handler';
 import {onV2Connection} from './namespace-v2';
-import {onV1Connection} from './namespace-v1';
+import * as v1 from './namespace-v1';
 import * as fs from 'fs';
 import {closeSioSockets, prepareTcpConnect, waitSignal} from './utils';
 
@@ -82,8 +82,8 @@ Please find more information at https://github.com/jokester/limb .
   });
 
   ioServer
-    .of(/^\/v1\/[-\w:.]+$/)
-    .on('connection', socket => onV1Connection(socket.nsp, socket));
+    .of(v1.parentNamespace)
+    .on('connection', socket => v1.onV1Connection(socket));
 
   ioServer
     .of(/^\/v2\/[-\w:.]+$/)

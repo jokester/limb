@@ -3,12 +3,13 @@
   "version": "0.0.1",
   "description": "a purpose-free signaling server",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "gts lint",
     "clean": "gts clean",
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "compile": "tsc",
     "fix": "gts fix"
@@ -18,7 +19,7 @@
   "dependencies": {
     "@blueprintjs/core": "^5.9.1",
     "@blueprintjs/icons": "^5.7.1",
-    "@jokester/ts-commonutil": "^0.4.2",
+    "@jokester/ts-commonutil": "^0.6.0",
     "clsx": "^2.1.0",
     "debug": "^4.3.4",
     "foxact": "^0.2.31",
@@ -36,7 +37,6 @@
     "@preact/preset-vite": "^2.8.1",
     "@types/debug": "^4.1.12",
     "@types/hammerjs": "^2.0.45",
-    "@types/node": "^18",
     "@types/react": "^18.2.51",
     "@types/serve-handler": "^6.1.4",
     "@types/uuid": "^9.0.8",
@@ -48,6 +48,7 @@
     "sass": "^1.70.0",
     "tailwindcss": "^3.4.1",
     "typescript": "*",
-    "vite": "^5.0.12"
+    "vite": "^5.0.12",
+    "wrangler": "*"
   }
 }
