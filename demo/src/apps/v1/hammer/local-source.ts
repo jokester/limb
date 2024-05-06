@@ -52,6 +52,6 @@ export function createLocalHammerInput$(
 ): Observable<SerializedHammerInput> {
   return createHammerInput$(manager).pipe(
     map(orig => serializeHammerInput(orig, ownClientId, baseElem)),
-    tap(ev => logger('local hammer event', ev, '=>', 'remote'))
+    tap(ev => logger('local hammer event', ev))
   );
 }
