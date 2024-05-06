@@ -44,7 +44,9 @@ function _HammerTouchDemo({
 
     const forwardLocal = localInput$.subscribe(ev => {
       logger('forward local event', ev, socket.connected);
-      socket.volatile.send(remoteEventName, ev);
+      if (socket.connected) {
+        socket.send(remoteEventName, ev);
+      }
     });
 
     const presentLocal = localInput$.subscribe(ev => {
