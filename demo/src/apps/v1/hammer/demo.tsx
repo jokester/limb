@@ -1,13 +1,15 @@
-import { memo, PropsWithChildren, useEffect, useRef, useState } from "react";
+import {memo, PropsWithChildren, useEffect, useRef, useState} from 'react';
 import {createHammerManager, createLocalHammerInput$} from './local-source';
-import {EMPTY, Observable, share} from 'rxjs';
-import {useObservable} from '../../../hooks/use-observable';
+import {share} from 'rxjs';
 import {io} from 'socket.io-client';
 import {createRemoteHammerInput$, remoteEventName} from './remote-source';
 import {getSocketServerOrigin} from '../../../pages/_shared';
 import debug from 'debug';
-import {createUnifiedSource, UnifiedHammerInput} from './unify';
-import {useInputReplayElements} from './replay';
+import {
+  transformLocalEvent,
+  transformRemoteEvent,
+  useInputReplayElements,
+} from './replay';
 
 const logger = debug('limb:v1:hammer:demo');
 
@@ -16,8 +18,8 @@ function _HammerTouchDemo({
   namespace,
 }: PropsWithChildren<{namespace: string; ownClientId: string}>) {
   const touchableRef = useRef<SVGSVGElement>(null);
-  const [unified$, setUnified$] =
-    useState<Observable<UnifiedHammerInput>>(EMPTY);
+
+  const replayElements = useInputReplayElements(ownClientId);
 
   useEffect(() => {
     const defaultOrigin = getSocketServerOrigin();
@@ -25,6 +27,11 @@ function _HammerTouchDemo({
     const socket = io(`${defaultOrigin}/v1/${namespace}`, {
       transports: ['websocket'],
     });
+    for (const event of ['connect', 'disconnect', 'connect_error', 'message']) {
+      socket.on(event, (...rest: unknown[]) => {
+        logger('socket event', event, rest);
+      });
+    }
     const manager = createHammerManager(touchableRef.current!);
 
     const localInput$ = createLocalHammerInput$(
@@ -36,30 +43,37 @@ function _HammerTouchDemo({
     const remoteInput$ = createRemoteHammerInput$(socket, ownClientId);
 
     const forwardLocal = localInput$.subscribe(ev => {
-      logger('forward local event', ev);
+      logger('forward local event', ev, socket.connected);
       socket.volatile.send(remoteEventName, ev);
     });
 
-    const unifiedInput$ = createUnifiedSource(localInput$, remoteInput$);
-    setUnified$(unifiedInput$);
+    const presentLocal = localInput$.subscribe(ev => {
+      logger('present local event', ev, socket.connected);
+      replayElements.callbacks.onInput(transformLocalEvent(ev));
+    });
+
+    const replayRemote = remoteInput$.subscribe(ev => {
+      logger('replay remote event', ev);
+      replayElements.callbacks.onInput(transformRemoteEvent(ev));
+    });
 
     return () => {
       forwardLocal.unsubscribe();
+      presentLocal.unsubscribe();
+      replayRemote.unsubscribe();
       manager.destroy();
       socket.close();
     };
-  }, [namespace, ownClientId]);
+  }, [namespace, ownClientId, replayElements.callbacks]);
 
-  useObservable(unified$, null);
+  // useObservable(unified$, null);
 
-  const svgChildren = useInputReplayElements(unified$, ownClientId);
-
-  logger('svgChildren', svgChildren)
+  logger('svgChildren', replayElements.elements);
 
   return (
     <div className="text-center py-2">
       <svg className="inline-block w-64 h-64 bg-gray-200" ref={touchableRef}>
-        {svgChildren}
+        {replayElements.elements}
       </svg>
     </div>
   );
