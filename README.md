@@ -1,6 +1,8 @@
 # limb
 
-Experiments 
+Experiments to run socket.io in serverless platform.
+
+Moved into [my socket.io fork](https://github.com/jokester/socket.io/tree/serverless-main)
 
 ## demo/
 

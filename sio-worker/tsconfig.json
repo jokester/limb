@@ -1,9 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "skipDefaultLibCheck": true,
-    "skipLibCheck": true,
-    "types": ["@cloudflare/worker-types"],
-    "lib": ["es2022"]
-  }
-}
